@@ -69,9 +69,10 @@ public class HomeController {
 
     @GetMapping("/input")
     public String input(Model model) {
-        model.addAttribute("chargeData", new ChargeData());
-
+        Date today = new Date();
         int accumulatedDistance = chargeDataService.getAccumulatedDistance();
+
+        model.addAttribute("today", today);
         model.addAttribute("accumulatedDistance", accumulatedDistance);
 
         return "input";
