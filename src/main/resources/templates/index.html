@@ -46,6 +46,30 @@
         text-decoration: none;
         cursor: pointer;
       }
+      .header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .header h1 {
+        margin: 0;
+      }
+      .summary-tables {
+        display: flex;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        margin-top: 20px;
+      }
+      .summary-table {
+        flex: 1;
+        margin: 10px;
+      }
+      .summary-table h5 {
+        margin: 0 0 10px 0;
+      }
+      .month-selector {
+        margin-top: 20px;
+      }
       @media (max-width: 600px) {
         .modal-content {
           width: 90%;
@@ -58,6 +82,9 @@
         td {
           padding: 8px;
         }
+        .summary-tables {
+          flex-direction: column;
+        }
       }
     </style>
     <!-- HTMX -->
@@ -65,50 +92,59 @@
   </head>
   <body>
     <div class="container">
-      <h1 class="center-align">Main Page</h1>
-      <div>
-        <h2>카드별 청구금액 총합</h2>
-        <table class="striped responsive-table">
-          <thead>
-            <tr>
-              <th>카드</th>
-              <th>총 청구금액</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr th:each="cardSummary : ${totalPriceByCard}">
-              <td th:text="${cardSummary[0]}"></td>
-              <td th:text="${cardSummary[1]}"></td>
-            </tr>
-          </tbody>
-        </table>
-
-        <h2>사업자별 충전량 총합</h2>
-        <table class="striped responsive-table">
-          <thead>
-            <tr>
-              <th>사업자</th>
-              <th>총 충전량</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr th:each="companySummary : ${totalChargeByCompany}">
-              <td th:text="${companySummary[0]}"></td>
-              <td th:text="${companySummary[1]}"></td>
-            </tr>
-          </tbody>
-        </table>
+      <div class="header">
+        <h1 th:text="${selectedMonth} + ' 충전 기록'">Main Page</h1>
+        <form
+          id="monthForm"
+          action="/"
+          method="get"
+          class="input-field month-selector"
+        >
+          <input
+            type="month"
+            id="month"
+            name="month"
+            th:value="${selectedMonth}"
+            onchange="document.getElementById('monthForm').submit();"
+          />
+        </form>
       </div>
-      <form id="monthForm" action="/" method="get" class="input-field">
-        <label for="month">Select Month:</label>
-        <input
-          type="month"
-          id="month"
-          name="month"
-          th:value="${selectedMonth}"
-          onchange="document.getElementById('monthForm').submit();"
-        />
-      </form>
+      <div class="summary-tables">
+        <div class="summary-table">
+          <h5>카드별 청구금액 총합</h5>
+          <table class="striped responsive-table">
+            <thead>
+              <tr>
+                <th>카드</th>
+                <th>총 청구금액</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr th:each="cardSummary : ${totalPriceByCard}">
+                <td th:text="${cardSummary[0]}"></td>
+                <td th:text="${cardSummary[1]}"></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="summary-table">
+          <h5>사업자별 충전량 총합</h5>
+          <table class="striped responsive-table">
+            <thead>
+              <tr>
+                <th>사업자</th>
+                <th>총 충전량</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr th:each="companySummary : ${totalChargeByCompany}">
+                <td th:text="${companySummary[0]}"></td>
+                <td th:text="${companySummary[1]}"></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
       <div th:if="${#lists.isEmpty(chargeDataList)}">
         <p>충전기록이 없습니다</p>
       </div>
