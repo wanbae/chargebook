@@ -46,8 +46,18 @@
         text-decoration: none;
         cursor: pointer;
       }
-      table {
-        width: 100%;
+      @media (max-width: 600px) {
+        .modal-content {
+          width: 90%;
+          padding: 10px;
+        }
+        table {
+          font-size: 12px;
+        }
+        th,
+        td {
+          padding: 8px;
+        }
       }
     </style>
     <!-- HTMX -->
@@ -55,21 +65,27 @@
   </head>
   <body>
     <div class="container">
-      <h1>Main Page</h1>
+      <h1 class="center-align">Main Page</h1>
       <div>
         <h2>카드별 청구금액 총합</h2>
         <ul id="cardSummary" class="collection">
-          <tr th:each="cardSummary : ${totalPriceByCard}">
-            <td th:text="${cardSummary[0]}"></td>
-            <td th:text="${cardSummary[1]}"></td>
-          </tr>
+          <li
+            class="collection-item"
+            th:each="cardSummary : ${totalPriceByCard}"
+          >
+            <span th:text="${cardSummary[0]}"></span>:
+            <span th:text="${cardSummary[1]}"></span>
+          </li>
         </ul>
         <h2>사업자별 충전량 총합</h2>
         <ul id="companySummary" class="collection">
-          <tr th:each="companySummary : ${totalChargeByCompany}">
-            <td th:text="${companySummary[0]}"></td>
-            <td th:text="${companySummary[1]}"></td>
-          </tr>
+          <li
+            class="collection-item"
+            th:each="companySummary : ${totalChargeByCompany}"
+          >
+            <span th:text="${companySummary[0]}"></span>:
+            <span th:text="${companySummary[1]}"></span>
+          </li>
         </ul>
       </div>
       <form id="monthForm" action="/" method="get" class="input-field">
@@ -122,22 +138,24 @@
           </tr>
         </tbody>
       </table>
-      <button
-        class="btn"
-        hx-get="/input"
-        hx-target="#modal-content"
-        hx-trigger="click"
-      >
-        입력
-      </button>
-      <button
-        class="btn"
-        th:attr="hx-get=@{/edit(month=${selectedMonth})}"
-        hx-target="body"
-        hx-trigger="click"
-      >
-        편집
-      </button>
+      <div class="center-align">
+        <button
+          class="btn"
+          hx-get="/input"
+          hx-target="#modal-content"
+          hx-trigger="click"
+        >
+          입력
+        </button>
+        <button
+          class="btn"
+          th:attr="hx-get=@{/edit(month=${selectedMonth})}"
+          hx-target="body"
+          hx-trigger="click"
+        >
+          편집
+        </button>
+      </div>
     </div>
 
     <div id="modal" class="modal">
