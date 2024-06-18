@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>편집 페이지</title>
+    <!-- Materialize CSS -->
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css"
+      rel="stylesheet"
+    />
+    <style>
+      body {
+        padding: 20px;
+      }
+      .modal {
+        display: none;
+        position: fixed;
+        z-index: 1;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        background-color: rgba(0, 0, 0, 0.4);
+        padding-top: 60px;
+      }
+      .modal-content {
+        background-color: #fff;
+        margin: 5% auto;
+        padding: 20px;
+        border: 1px solid #888;
+        width: 80%;
+        max-width: 600px;
+      }
+      .close {
+        color: #aaa;
+        float: right;
+        font-size: 28px;
+        font-weight: bold;
+      }
+      .close:hover,
+      .close:focus {
+        color: black;
+        text-decoration: none;
+        cursor: pointer;
+      }
+      table {
+        width: 100%;
+      }
+    </style>
+    <!-- HTMX -->
+    <script src="/htmx.min.js"></script>
+  </head>
+  <body>
+    <div class="container">
+      <h1>편집 페이지</h1>
+      <table class="striped responsive-table">
+        <thead>
+          <tr>
+            <th>날짜</th>
+            <th>충전량</th>
+            <th>충전금액</th>
+            <th>단가</th>
+            <th>포인트 사용</th>
+            <th>할인후 금액</th>
+            <th>할인율</th>
+            <th>청구금액</th>
+            <th>청구단가</th>
+            <th>누적주행거리</th>
+            <th>카드</th>
+            <th>사업자</th>
+            <th>편집</th>
+            <th>삭제</th>
+          </tr>
+        </thead>
+        <tbody id="chargeDataTable">
+          <tr th:each="data : ${chargeDataList}">
+            <td th:text="${#dates.format(data.date, 'yyyy-MM-dd')}"></td>
+            <td th:text="${data.amountOfCharge}"></td>
+            <td th:text="${data.price}"></td>
+            <td th:text="${data.unitPrice}"></td>
+            <td th:text="${data.point}"></td>
+            <td th:text="${data.discountedPrice}"></td>
+            <td th:text="${data.discountRate}"></td>
+            <td th:text="${data.finalPrice}"></td>
+            <td th:text="${data.finalUnitPrice}"></td>
+            <td th:text="${data.distance}"></td>
+            <td th:text="${data.card}"></td>
+            <td th:text="${data.company}"></td>
+            <td>
+              <button
+                class="btn"
+                th:attr="hx-get=@{/edit/{id}(id=${data.id}, month=${selectedMonth})}"
+                hx-target="#modal-content"
+                hx-trigger="click"
+              >
+                편집
+              </button>
+            </td>
+            <td>
+              <button
+                class="btn red"
+                th:attr="hx-delete=@{/delete/{id}(id=${data.id})}"
+                hx-target="closest tr"
+                hx-swap="outerHTML"
+              >
+                삭제
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <button
+        class="btn"
+        th:attr="hx-get=@{'/?month=' + ${selectedMonth}}"
+        hx-target="body"
+        hx-trigger="click"
+      >
+        메인 화면으로 돌아가기
+      </button>
+    </div>
+
+    <div id="modal" class="modal">
+      <div class="modal-content" id="modal-content">
+        <span
+          class="close"
+          onclick="document.getElementById('modal').style.display='none'"
+          >&times;</span
+        >
+      </div>
+    </div>
+
+    <script>
+      document.addEventListener("htmx:afterSwap", function (event) {
+        if (event.detail.target.id === "modal-content") {
+          document.getElementById("modal").style.display = "block";
+        }
+      });
+
+      window.onclick = function (event) {
+        if (event.target === document.getElementById("modal")) {
+          document.getElementById("modal").style.display = "none";
+        }
+      };
+    </script>
+    <!-- Materialize JavaScript -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+  </body>
+</html>
