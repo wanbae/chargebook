@@ -68,25 +68,36 @@
       <h1 class="center-align">Main Page</h1>
       <div>
         <h2>카드별 청구금액 총합</h2>
-        <ul id="cardSummary" class="collection">
-          <li
-            class="collection-item"
-            th:each="cardSummary : ${totalPriceByCard}"
-          >
-            <span th:text="${cardSummary[0]}"></span>:
-            <span th:text="${cardSummary[1]}"></span>
-          </li>
-        </ul>
+        <table class="striped responsive-table">
+          <thead>
+            <tr>
+              <th>카드</th>
+              <th>총 청구금액</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr th:each="cardSummary : ${totalPriceByCard}">
+              <td th:text="${cardSummary[0]}"></td>
+              <td th:text="${cardSummary[1]}"></td>
+            </tr>
+          </tbody>
+        </table>
+
         <h2>사업자별 충전량 총합</h2>
-        <ul id="companySummary" class="collection">
-          <li
-            class="collection-item"
-            th:each="companySummary : ${totalChargeByCompany}"
-          >
-            <span th:text="${companySummary[0]}"></span>:
-            <span th:text="${companySummary[1]}"></span>
-          </li>
-        </ul>
+        <table class="striped responsive-table">
+          <thead>
+            <tr>
+              <th>사업자</th>
+              <th>총 충전량</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr th:each="companySummary : ${totalChargeByCompany}">
+              <td th:text="${companySummary[0]}"></td>
+              <td th:text="${companySummary[1]}"></td>
+            </tr>
+          </tbody>
+        </table>
       </div>
       <form id="monthForm" action="/" method="get" class="input-field">
         <label for="month">Select Month:</label>
