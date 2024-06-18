@@ -51,8 +51,13 @@ public class HomeController {
             chargeDataList = chargeDataService.getAllChargeData();
         }
 
+        List<Object[]> totalChargeByCompany = chargeDataService.getTotalChargeByCompany(month);
+        List<Object[]> totalPriceByCard = chargeDataService.getTotalPriceByCard(month);
+
         model.addAttribute("chargeDataList", chargeDataList);
         model.addAttribute("selectedMonth", month);
+        model.addAttribute("totalChargeByCompany", totalChargeByCompany);
+        model.addAttribute("totalPriceByCard", totalPriceByCard);
 
         return "index";
     }

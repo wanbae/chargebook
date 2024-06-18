@@ -58,9 +58,19 @@
       <h1>Main Page</h1>
       <div>
         <h2>카드별 청구금액 총합</h2>
-        <ul id="cardSummary" class="collection"></ul>
+        <ul id="cardSummary" class="collection">
+          <tr th:each="cardSummary : ${totalPriceByCard}">
+            <td th:text="${cardSummary[0]}"></td>
+            <td th:text="${cardSummary[1]}"></td>
+          </tr>
+        </ul>
         <h2>사업자별 충전량 총합</h2>
-        <ul id="companySummary" class="collection"></ul>
+        <ul id="companySummary" class="collection">
+          <tr th:each="companySummary : ${totalChargeByCompany}">
+            <td th:text="${companySummary[0]}"></td>
+            <td th:text="${companySummary[1]}"></td>
+          </tr>
+        </ul>
       </div>
       <form id="monthForm" action="/" method="get" class="input-field">
         <label for="month">Select Month:</label>

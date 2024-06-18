@@ -39,6 +39,14 @@ public class ChargeDataService {
         return chargeDataRepository.getAccumulatedDistance();
     }
 
+    public List<Object[]> getTotalChargeByCompany(String month) {
+        return chargeDataRepository.findTotalChargeByCompany(month);
+    }
+
+    public List<Object[]> getTotalPriceByCard(String month) {
+        return chargeDataRepository.findTotalPriceByCard(month);
+    }
+
     private void calculateValues(ChargeData chargeData) {
         int price = chargeData.getPrice() != null ? chargeData.getPrice() : 0;
         int point = chargeData.getPoint() != null ? chargeData.getPoint() : 0;

@@ -16,4 +16,10 @@ public interface ChargeDataRepository extends JpaRepository<ChargeData, Long> {
 
     @Query("SELECT COALESCE(SUM(c.distance), 0) FROM ChargeData c")
     int getAccumulatedDistance();
+
+    @Query("SELECT c.company, SUM(c.amountOfCharge) FROM ChargeData c WHERE FUNCTION('FORMATDATETIME', c.date, 'yyyy-MM') = ?1 GROUP BY c.company")
+    List<Object[]> findTotalChargeByCompany(String month);
+
+    @Query("SELECT c.card, SUM(c.finalPrice) FROM ChargeData c WHERE FUNCTION('FORMATDATETIME', c.date, 'yyyy-MM') = ?1 GROUP BY c.card")
+    List<Object[]> findTotalPriceByCard(String month);
 }
