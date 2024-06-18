@@ -14,38 +14,6 @@
       body {
         padding: 20px;
       }
-      .modal {
-        display: none;
-        position: fixed;
-        z-index: 1;
-        left: 0;
-        top: 0;
-        width: 100%;
-        height: 100%;
-        overflow: auto;
-        background-color: rgba(0, 0, 0, 0.4);
-        padding-top: 60px;
-      }
-      .modal-content {
-        background-color: #fff;
-        margin: 5% auto;
-        padding: 20px;
-        border: 1px solid #888;
-        width: 80%;
-        max-width: 600px;
-      }
-      .close {
-        color: #aaa;
-        float: right;
-        font-size: 28px;
-        font-weight: bold;
-      }
-      .close:hover,
-      .close:focus {
-        color: black;
-        text-decoration: none;
-        cursor: pointer;
-      }
       .header {
         display: flex;
         justify-content: space-between;
@@ -71,10 +39,6 @@
         margin-top: 20px;
       }
       @media (max-width: 600px) {
-        .modal-content {
-          width: 90%;
-          padding: 10px;
-        }
         table {
           font-size: 12px;
         }
@@ -86,9 +50,15 @@
           flex-direction: column;
         }
       }
+      tr.clickable-row {
+        cursor: pointer;
+      }
+      .button-container {
+        display: flex;
+        justify-content: flex-end;
+        margin-top: 20px;
+      }
     </style>
-    <!-- HTMX -->
-    <script src="/htmx.min.js"></script>
   </head>
   <body>
     <div class="container">
@@ -120,9 +90,11 @@
               </tr>
             </thead>
             <tbody>
-              <tr th:each="cardSummary : ${totalPriceByCard}">
-                <td th:text="${cardSummary[0]}"></td>
-                <td th:text="${cardSummary[1]}"></td>
+              <tr th:each="cardSummary : ${totalPriceByCard.entrySet()}">
+                <td
+                  th:text="${cardSummary.key == 'BC' ? '비씨카드' : cardSummary.key == 'Samsung' ? '삼성카드' : cardSummary.key == 'Shinhan' ? '신한카드' : cardSummary.key == 'Hana' ? '하나카드' : cardSummary.key}"
+                ></td>
+                <td th:text="${cardSummary.value}"></td>
               </tr>
             </tbody>
           </table>
@@ -137,9 +109,9 @@
               </tr>
             </thead>
             <tbody>
-              <tr th:each="companySummary : ${totalChargeByCompany}">
-                <td th:text="${companySummary[0]}"></td>
-                <td th:text="${companySummary[1]}"></td>
+              <tr th:each="companySummary : ${totalChargeByCompany.entrySet()}">
+                <td th:text="${companySummary.key}"></td>
+                <td th:text="${companySummary.value}"></td>
               </tr>
             </tbody>
           </table>
@@ -169,7 +141,11 @@
           </tr>
         </thead>
         <tbody>
-          <tr th:each="data : ${chargeDataList}">
+          <tr
+            th:each="data : ${chargeDataList}"
+            th:onclick="|window.location='/edit/${data.id}'|"
+            class="clickable-row"
+          >
             <td th:text="${#dates.format(data.date, 'yyyy-MM-dd')}"></td>
             <td th:text="${data.amountOfCharge}"></td>
             <td th:text="${data.price}"></td>
@@ -180,54 +156,18 @@
             <td th:text="${data.finalPrice}"></td>
             <td th:text="${data.finalUnitPrice}"></td>
             <td th:text="${data.distance}"></td>
-            <td th:text="${data.card}"></td>
+            <td
+              th:text="${data.card == 'BC' ? '비씨카드' : data.card == 'Samsung' ? '삼성카드' : data.card == 'Shinhan' ? '신한카드' : data.card == 'Hana' ? '하나카드' : data.card}"
+            ></td>
             <td th:text="${data.company}"></td>
           </tr>
         </tbody>
       </table>
-      <div class="center-align">
-        <button
-          class="btn"
-          hx-get="/input"
-          hx-target="#modal-content"
-          hx-trigger="click"
-        >
-          입력
-        </button>
-        <button
-          class="btn"
-          th:attr="hx-get=@{/edit(month=${selectedMonth})}"
-          hx-target="body"
-          hx-trigger="click"
-        >
-          편집
-        </button>
+      <div class="button-container">
+        <a class="btn" href="/input">입력</a>
       </div>
     </div>
 
-    <div id="modal" class="modal">
-      <div class="modal-content" id="modal-content">
-        <span
-          class="close"
-          onclick="document.getElementById('modal').style.display='none'"
-          >&times;</span
-        >
-      </div>
-    </div>
-
-    <script>
-      document.addEventListener("htmx:afterSwap", function (event) {
-        if (event.detail.target.id === "modal-content") {
-          document.getElementById("modal").style.display = "block";
-        }
-      });
-
-      window.onclick = function (event) {
-        if (event.target === document.getElementById("modal")) {
-          document.getElementById("modal").style.display = "none";
-        }
-      };
-    </script>
     <!-- Materialize JavaScript -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
   </body>

@@ -5,7 +5,9 @@ import com.oneship.chargebook.repository.ChargeDataRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Service
@@ -39,12 +41,22 @@ public class ChargeDataService {
         return chargeDataRepository.getAccumulatedDistance();
     }
 
-    public List<Object[]> getTotalChargeByCompany(String month) {
-        return chargeDataRepository.findTotalChargeByCompany(month);
+    public Map<String, Integer> getTotalPriceByCard(String month) {
+        List<ChargeData> monthlyData = getChargeDataByMonth(month);
+        Map<String, Integer> totalPriceByCard = new HashMap<>();
+        for (ChargeData data : monthlyData) {
+            totalPriceByCard.merge(data.getCard(), data.getPrice(), Integer::sum);
+        }
+        return totalPriceByCard;
     }
 
-    public List<Object[]> getTotalPriceByCard(String month) {
-        return chargeDataRepository.findTotalPriceByCard(month);
+    public Map<String, Integer> getTotalChargeByCompany(String month) {
+        List<ChargeData> monthlyData = getChargeDataByMonth(month);
+        Map<String, Integer> totalChargeByCompany = new HashMap<>();
+        for (ChargeData data : monthlyData) {
+            totalChargeByCompany.merge(data.getCompany(), data.getAmountOfCharge(), Integer::sum);
+        }
+        return totalChargeByCompany;
     }
 
     private void calculateValues(ChargeData chargeData) {

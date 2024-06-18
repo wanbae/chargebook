@@ -1,3 +1,17 @@
+logging:
+  level:
+    root: INFO
+    org.springframework.boot.context.config: DEBUG
+    org.springframework.boot.context.properties: DEBUG
+    com.oneship.chargebook.config: DEBUG
+
+card-discounts:
+  discounts:
+    BC: 80
+    Samsung: 50
+    Shinhan: 50
+    Hana: 0
+
 server:
   port: 8080
 

@@ -1,5 +1,14 @@
 package com.oneship.chargebook.controller;
 
+import com.oneship.chargebook.model.ChargeData;
+import com.oneship.chargebook.service.CardDiscountService;
+import com.oneship.chargebook.service.ChargeDataService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.WebDataBinder;
+import org.springframework.web.bind.annotation.*;
+
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
@@ -7,27 +16,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
-import org.springframework.web.bind.WebDataBinder;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.InitBinder;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
-
-import com.oneship.chargebook.model.ChargeData;
-import com.oneship.chargebook.service.ChargeDataService;
-
 @Controller
 public class HomeController {
 
     @Autowired
     private ChargeDataService chargeDataService;
+
+    @Autowired
+    private CardDiscountService cardDiscountService;
 
     @InitBinder
     public void initBinder(WebDataBinder binder) {
@@ -43,38 +39,23 @@ public class HomeController {
             month = sdf.format(new Date());
         }
 
-        List<ChargeData> chargeDataList;
-        try {
-            chargeDataList = chargeDataService.getChargeDataByMonth(month);
-        } catch (Exception e) {
-            e.printStackTrace();
-            chargeDataList = chargeDataService.getAllChargeData();
-        }
-
-        List<Object[]> totalChargeByCompany = chargeDataService.getTotalChargeByCompany(month);
-        List<Object[]> totalPriceByCard = chargeDataService.getTotalPriceByCard(month);
-
+        List<ChargeData> chargeDataList = chargeDataService.getChargeDataByMonth(month);
         model.addAttribute("chargeDataList", chargeDataList);
         model.addAttribute("selectedMonth", month);
-        model.addAttribute("totalChargeByCompany", totalChargeByCompany);
+
+        // 카드별 청구금액 총합 및 사업자별 충전량 총합 계산
+        Map<String, Integer> totalPriceByCard = chargeDataService.getTotalPriceByCard(month);
+        Map<String, Integer> totalChargeByCompany = chargeDataService.getTotalChargeByCompany(month);
         model.addAttribute("totalPriceByCard", totalPriceByCard);
+        model.addAttribute("totalChargeByCompany", totalChargeByCompany);
 
         return "index";
     }
 
-    @GetMapping("/popup")
-    public String popup() {
-        return "popup";
-    }
-
     @GetMapping("/input")
     public String input(Model model) {
-        Date today = new Date();
-        int accumulatedDistance = chargeDataService.getAccumulatedDistance();
-
-        model.addAttribute("today", today);
-        model.addAttribute("accumulatedDistance", accumulatedDistance);
-
+        model.addAttribute("chargeData", new ChargeData());
+        model.addAttribute("today", new Date());
         return "input";
     }
 
@@ -84,16 +65,21 @@ public class HomeController {
         return "redirect:/";
     }
 
-    @PostMapping("/api/getLatestChargeData")
-    public @ResponseBody
-    Map<String, String> getLatestChargeData(@RequestParam String company) {
-        Map<String, String> data = new HashMap<>();
-        data.put("amountOfCharge", "150");
-        data.put("price", "3000");
-        data.put("point", "100");
-        data.put("card", "삼성");
+    @GetMapping("/edit/{id}")
+    public String edit(@PathVariable Long id, Model model) {
+        Optional<ChargeData> chargeDataOptional = chargeDataService.getChargeDataById(id);
+        if (chargeDataOptional.isPresent()) {
+            model.addAttribute("chargeData", chargeDataOptional.get());
+            return "edit";
+        } else {
+            return "redirect:/";
+        }
+    }
 
-        return data;
+    @PostMapping("/update")
+    public String update(@ModelAttribute ChargeData chargeData) {
+        chargeDataService.saveChargeData(chargeData);
+        return "redirect:/";
     }
 
     @DeleteMapping("/delete/{id}")
@@ -102,29 +88,17 @@ public class HomeController {
         chargeDataService.deleteChargeData(id);
     }
 
-    @GetMapping("/edit")
-    public String edit(@RequestParam("month") String month, Model model) {
-        List<ChargeData> chargeDataList = chargeDataService.getChargeDataByMonth(month);
-        model.addAttribute("chargeDataList", chargeDataList);
-        model.addAttribute("selectedMonth", month);
-        return "edit";
-    }
-
-    @GetMapping("/edit/{id}")
-    public String editPopup(@PathVariable Long id, @RequestParam("month") String month, Model model) {
-        Optional<ChargeData> chargeDataOptional = chargeDataService.getChargeDataById(id);
-        if (chargeDataOptional.isPresent()) {
-            model.addAttribute("chargeData", chargeDataOptional.get());
-            model.addAttribute("selectedMonth", month);
-            return "edit_popup";
-        } else {
-            return "redirect:/edit?month=" + month;
+    @GetMapping("/api/getDiscountRate")
+    @ResponseBody
+    public Map<String, Object> getDiscountRate(@RequestParam String cardName) {
+        Map<String, Object> response = new HashMap<>();
+        try {
+            int discountRate = cardDiscountService.getDiscountByCardName(cardName);
+            response.put("discountRate", discountRate);
+        } catch (IllegalArgumentException e) {
+            response.put("error", 1); // Error code to indicate failure
+            response.put("message", e.getMessage());
         }
-    }
-
-    @PostMapping("/update")
-    public String update(@ModelAttribute ChargeData chargeData, @RequestParam("month") String month) {
-        chargeDataService.saveChargeData(chargeData);
-        return "redirect:/edit?month=" + month;
+        return response;
     }
 }

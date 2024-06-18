@@ -10,197 +10,146 @@
       rel="stylesheet"
     />
     <style>
-      .modal-content {
-        max-height: 90vh;
-        overflow-y: auto;
+      body {
+        padding: 20px;
       }
     </style>
   </head>
   <body>
     <div class="container">
-      <form action="/save" method="post">
-        <div class="modal-content">
-          <h4>입력</h4>
-          <div class="input-field">
-            <label for="date">날짜:</label>
-            <input
-              type="date"
-              id="date"
-              name="date"
-              th:value="${#dates.format(today, 'yyyy-MM-dd')}"
-            />
-          </div>
-          <div class="input-field">
-            <label for="amountOfCharge">충전량:</label>
-            <input type="number" id="amountOfCharge" name="amountOfCharge" />
-          </div>
-          <div class="input-field">
-            <label for="price">충전금액:</label>
-            <input type="number" id="price" name="price" />
-          </div>
-          <div class="input-field">
-            <label for="unitPrice">단가:</label>
-            <input type="number" id="unitPrice" name="unitPrice" />
-          </div>
-          <div class="input-field">
-            <label for="point">포인트 사용:</label>
-            <input type="number" id="point" name="point" />
-          </div>
-          <div class="input-field">
-            <label for="distance">누적 주행거리:</label>
-            <input
-              type="number"
-              id="distance"
-              name="distance"
-              th:value="${accumulatedDistance}"
-            />
-          </div>
-          <div>
-            <label>할인율:</label><br />
-            <label>
-              <input
-                type="radio"
-                id="discount100"
-                name="discountRate"
-                value="100"
-              />
-              <span>100%</span> </label
-            ><br />
-            <label>
-              <input
-                type="radio"
-                id="discount80"
-                name="discountRate"
-                value="80"
-              />
-              <span>80%</span> </label
-            ><br />
-            <label>
-              <input
-                type="radio"
-                id="discount70"
-                name="discountRate"
-                value="70"
-              />
-              <span>70%</span> </label
-            ><br />
-            <label>
-              <input
-                type="radio"
-                id="discount50"
-                name="discountRate"
-                value="50"
-              />
-              <span>50%</span> </label
-            ><br />
-            <label>
-              <input
-                type="radio"
-                id="discount30"
-                name="discountRate"
-                value="30"
-              />
-              <span>30%</span> </label
-            ><br />
-            <label>
-              <input
-                type="radio"
-                id="discount0"
-                name="discountRate"
-                value="0"
-              />
-              <span>0%</span> </label
-            ><br />
-          </div>
-          <div>
-            <label>카드:</label><br />
-            <label>
-              <input type="radio" id="bc" name="card" value="BC" />
-              <span>BC</span> </label
-            ><br />
-            <label>
-              <input type="radio" id="samsung" name="card" value="삼성" />
-              <span>삼성</span> </label
-            ><br />
-            <label>
-              <input type="radio" id="shinhan" name="card" value="신한" />
-              <span>신한</span> </label
-            ><br />
-            <label>
-              <input type="radio" id="hana" name="card" value="하나" />
-              <span>하나</span> </label
-            ><br />
-          </div>
-          <div>
-            <label>사업자:</label><br />
-            <label>
-              <input
-                type="radio"
-                id="hanhwa"
-                name="company"
-                value="한화모티브"
-              />
-              <span>한화모티브</span> </label
-            ><br />
-            <label>
-              <input type="radio" id="sk" name="company" value="SK일렉링크" />
-              <span>SK일렉링크</span> </label
-            ><br />
-            <label>
-              <input
-                type="radio"
-                id="evinfra"
-                name="company"
-                value="EV Infra"
-              />
-              <span>EV Infra</span> </label
-            ><br />
-            <label>
-              <input type="radio" id="chargev" name="company" value="chargev" />
-              <span>chargev</span> </label
-            ><br />
-            <label>
-              <input type="radio" id="epit" name="company" value="E-Pit" />
-              <span>E-Pit</span> </label
-            ><br />
-            <label>
-              <input
-                type="radio"
-                id="powercube"
-                name="company"
-                value="파워큐브"
-              />
-              <span>파워큐브</span> </label
-            ><br />
-            <label>
-              <input type="radio" id="kepco" name="company" value="한전" />
-              <span>한전</span> </label
-            ><br />
-            <label>
-              <input type="radio" id="env" name="company" value="환경부" />
-              <span>환경부</span> </label
-            ><br />
-            <label>
-              <input type="radio" id="everon" name="company" value="에버온" />
-              <span>에버온</span> </label
-            ><br />
-            <label>
-              <input type="radio" id="other" name="company" value="기타" />
-              <span>기타</span> </label
-            ><br />
-          </div>
-          <button type="submit" class="btn">저장</button>
-          <button
-            type="button"
-            class="btn red"
-            onclick="document.getElementById('modal').style.display='none'"
-          >
-            취소
-          </button>
+      <h4>입력</h4>
+      <form id="inputForm" action="/save" method="post">
+        <div class="input-field">
+          <input
+            type="date"
+            id="date"
+            name="date"
+            th:value="${#dates.format(today, 'yyyy-MM-dd')}"
+            autocomplete="off"
+          />
+          <label for="date" class="active">날짜</label>
         </div>
+        <div class="input-field">
+          <input
+            type="number"
+            id="amountOfCharge"
+            name="amountOfCharge"
+            autocomplete="off"
+          />
+          <label for="amountOfCharge" class="active">충전량</label>
+        </div>
+        <div class="input-field">
+          <input type="number" id="price" name="price" autocomplete="off" />
+          <label for="price" class="active">충전금액</label>
+        </div>
+        <div class="input-field">
+          <input
+            type="number"
+            id="unitPrice"
+            name="unitPrice"
+            autocomplete="off"
+          />
+          <label for="unitPrice" class="active">단가</label>
+        </div>
+        <div class="input-field">
+          <input type="number" id="point" name="point" autocomplete="off" />
+          <label for="point" class="active">포인트 사용</label>
+        </div>
+        <div class="input-field">
+          <input
+            type="number"
+            id="distance"
+            name="distance"
+            th:value="${accumulatedDistance}"
+            autocomplete="off"
+          />
+          <label for="distance" class="active">누적 주행거리</label>
+        </div>
+        <div class="row">
+          <div class="input-field col s6">
+            <select
+              id="card"
+              name="card"
+              class="browser-default"
+              autocomplete="off"
+            >
+              <option value="BC" selected>비씨카드</option>
+              <option value="Samsung">삼성카드</option>
+              <option value="Shinhan">신한카드</option>
+              <option value="Hana">하나카드</option>
+            </select>
+            <label for="card" class="active">카드</label>
+          </div>
+          <div class="input-field col s6">
+            <select
+              id="discountRate"
+              name="discountRate"
+              class="browser-default"
+              autocomplete="off"
+            >
+              <option value="100">100%</option>
+              <option value="80">80%</option>
+              <option value="70">70%</option>
+              <option value="50">50%</option>
+              <option value="30">30%</option>
+              <option value="0">0%</option>
+            </select>
+            <label for="discountRate" class="active">할인율</label>
+          </div>
+        </div>
+        <div class="input-field">
+          <select
+            id="company"
+            name="company"
+            class="browser-default"
+            autocomplete="off"
+          >
+            <option value="한화모티브" selected>한화모티브</option>
+            <option value="SK일렉링크">SK일렉링크</option>
+            <option value="EV Infra">EV Infra</option>
+            <option value="chargev">chargev</option>
+            <option value="E-Pit">E-Pit</option>
+            <option value="파워큐브">파워큐브</option>
+            <option value="한전">한전</option>
+            <option value="환경부">환경부</option>
+            <option value="에버온">에버온</option>
+            <option value="기타">기타</option>
+          </select>
+          <label for="company" class="active">사업자</label>
+        </div>
+        <button type="submit" class="btn">저장</button>
+        <a class="btn red" href="/">취소</a>
       </form>
     </div>
+
     <!-- Materialize JavaScript -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        var cardSelect = document.getElementById("card");
+        cardSelect.addEventListener("change", function () {
+          fetchDiscountRate(this.value);
+        });
+
+        // 카드 기본값에 따라 할인율 자동 설정
+        if (cardSelect.value) {
+          fetchDiscountRate(cardSelect.value);
+        }
+
+        function fetchDiscountRate(cardName) {
+          fetch(`/api/getDiscountRate?cardName=${cardName}`)
+            .then((response) => response.json())
+            .then((data) => {
+              var discountRateSelect = document.getElementById("discountRate");
+              discountRateSelect.value = data.discountRate;
+              M.FormSelect.init(discountRateSelect);
+              console.log("Discount rate set to:", data.discountRate);
+            })
+            .catch((error) =>
+              console.error("Error fetching discount rate:", error)
+            );
+        }
+      });
+    </script>
   </body>
 </html>
