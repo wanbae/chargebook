@@ -67,7 +67,7 @@ public class ChargeDataService {
 
         int discountedPrice = price - point;
         int finalPrice = Math.round(discountedPrice * (100 - discountRate) / 100);
-        int finalUnitPrice = amountOfCharge == 0.0 ? 0 : (int) Math.round(finalPrice / amountOfCharge);
+        int finalUnitPrice = amountOfCharge == 0 ? 0 : Math.round(finalPrice / (float) amountOfCharge);
 
         chargeData.setDiscountedPrice(discountedPrice);
         chargeData.setFinalPrice(finalPrice);

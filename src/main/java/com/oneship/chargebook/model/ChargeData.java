@@ -6,8 +6,6 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.PrePersist;
-import javax.persistence.PreUpdate;
 import java.util.Date;
 
 @Entity
@@ -18,47 +16,22 @@ public class ChargeData {
     private Long id;
 
     private Date date;
-    private Double amountOfCharge;
-    private Integer price;
-    private Integer unitPrice;
-    private Integer point;
-    private Integer distance;
-    private Integer discountRate;
+    private Double amountOfCharge = 0.0;
+    private Integer price = 0;
+    private Integer point = 0;
+    private Integer distance = 0;
+    private Integer discountRate = 0;
     private String card;
     private String company;
-    private Integer discountedPrice;
-    private Integer finalPrice;
-    private Integer finalUnitPrice;
+    private Integer discountedPrice = 0;
+    private Integer finalPrice = 0;
+    private Integer finalUnitPrice = 0;
 
-    @PrePersist
-    @PreUpdate
-    private void setDefaultValues() {
-        if (amountOfCharge == null) {
-            amountOfCharge = 0.0;
-        }
-        if (price == null) {
-            price = 0;
-        }
-        if (unitPrice == null) {
-            unitPrice = 0;
-        }
-        if (point == null) {
-            point = 0;
-        }
-        if (distance == null) {
-            distance = 0;
-        }
-        if (discountRate == null) {
-            discountRate = 0;
-        }
-        if (discountedPrice == null) {
-            discountedPrice = 0;
-        }
-        if (finalPrice == null) {
-            finalPrice = 0;
-        }
-        if (finalUnitPrice == null) {
-            finalUnitPrice = 0;
+    public Integer getUnitPrice() {
+        if (amountOfCharge != null && amountOfCharge > 0) {
+            return (int) Math.round(price / amountOfCharge);
+        } else {
+            return 0;
         }
     }
 }

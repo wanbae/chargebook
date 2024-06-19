@@ -13,45 +13,41 @@
       body {
         padding: 20px;
       }
-      .input-field
-        input[type="number"]:not(.browser-default):not([readonly])
-        + label {
-        transform: translateY(-14px) scale(0.8);
+      .header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        position: relative;
+      }
+      .header h4 {
+        text-align: center;
+        flex-grow: 1;
+        margin: 0;
+      }
+      .header .delete-button {
+        position: absolute;
+        right: 0;
+      }
+      .button-container {
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+        margin-top: 20px;
       }
     </style>
-    <script>
-      function calculateUnitPrice() {
-        var amountOfCharge = document.getElementById("amountOfCharge").value;
-        var price = document.getElementById("price").value;
-        var unitPrice = document.getElementById("unitPrice");
-
-        if (amountOfCharge && price) {
-          unitPrice.value = Math.round(price / amountOfCharge);
-        } else {
-          unitPrice.value = "";
-        }
-      }
-
-      document.addEventListener("DOMContentLoaded", function () {
-        var amountOfChargeInput = document.getElementById("amountOfCharge");
-        var priceInput = document.getElementById("price");
-
-        amountOfChargeInput.addEventListener("input", calculateUnitPrice);
-        priceInput.addEventListener("input", calculateUnitPrice);
-
-        calculateUnitPrice(); // 초기 계산
-
-        // 포인트 기본값 설정
-        var pointInput = document.getElementById("point");
-        if (!pointInput.value) {
-          pointInput.value = 0;
-        }
-      });
-    </script>
   </head>
   <body>
     <div class="container">
-      <h4>수정</h4>
+      <div class="header">
+        <h4>수정</h4>
+        <button
+          type="button"
+          class="btn red delete-button"
+          onclick="deleteData()"
+        >
+          삭제
+        </button>
+      </div>
       <form id="editForm" action="/update" method="post">
         <input type="hidden" id="id" name="id" th:value="${chargeData.id}" />
         <div class="input-field">
@@ -88,16 +84,6 @@
         <div class="input-field">
           <input
             type="number"
-            id="unitPrice"
-            name="unitPrice"
-            readonly
-            autocomplete="off"
-          />
-          <label for="unitPrice" class="active">충전단가</label>
-        </div>
-        <div class="input-field">
-          <input
-            type="number"
             id="point"
             name="point"
             th:value="${chargeData.point}"
@@ -124,23 +110,33 @@
               autocomplete="off"
               th:value="${chargeData.card}"
             >
-              <option value="BC" th:selected="${chargeData.card == 'BC'}">
-                비씨카드
+              <option
+                value="BC"
+                th:selected="${chargeData.card == 'BC'}"
+                th:text="'비씨카드'"
+              >
+                BC
               </option>
               <option
                 value="Samsung"
                 th:selected="${chargeData.card == 'Samsung'}"
+                th:text="'삼성카드'"
               >
-                삼성카드
+                Samsung
               </option>
               <option
                 value="Shinhan"
                 th:selected="${chargeData.card == 'Shinhan'}"
+                th:text="'신한카드'"
               >
-                신한카드
+                Shinhan
               </option>
-              <option value="Hana" th:selected="${chargeData.card == 'Hana'}">
-                하나카드
+              <option
+                value="Hana"
+                th:selected="${chargeData.card == 'Hana'}"
+                th:text="'하나카드'"
+              >
+                Hana
               </option>
             </select>
             <label for="card" class="active">카드</label>
@@ -243,11 +239,10 @@
           </select>
           <label for="company" class="active">사업자</label>
         </div>
-        <button type="submit" class="btn">저장</button>
-        <a class="btn red" href="/">취소</a>
-        <button type="button" class="btn red" onclick="deleteData()">
-          삭제
-        </button>
+        <div class="button-container">
+          <button type="submit" class="btn">저장</button>
+          <a class="btn red" href="/">취소</a>
+        </div>
       </form>
     </div>
 

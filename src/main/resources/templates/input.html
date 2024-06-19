@@ -13,43 +13,20 @@
       body {
         padding: 20px;
       }
-      .input-field
-        input[type="number"]:not(.browser-default):not([readonly])
-        + label {
-        transform: translateY(-14px) scale(0.8);
+      .title {
+        text-align: center;
+      }
+      .button-container {
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+        margin-top: 20px;
       }
     </style>
-    <script>
-      function calculateUnitPrice() {
-        var amountOfCharge = document.getElementById("amountOfCharge").value;
-        var price = document.getElementById("price").value;
-        var unitPrice = document.getElementById("unitPrice");
-
-        if (amountOfCharge && price) {
-          unitPrice.value = Math.round(price / amountOfCharge);
-        } else {
-          unitPrice.value = "";
-        }
-      }
-
-      document.addEventListener("DOMContentLoaded", function () {
-        var amountOfChargeInput = document.getElementById("amountOfCharge");
-        var priceInput = document.getElementById("price");
-
-        amountOfChargeInput.addEventListener("input", calculateUnitPrice);
-        priceInput.addEventListener("input", calculateUnitPrice);
-
-        // 포인트 기본값 설정
-        var pointInput = document.getElementById("point");
-        if (!pointInput.value) {
-          pointInput.value = 0;
-        }
-      });
-    </script>
   </head>
   <body>
     <div class="container">
-      <h4>입력</h4>
+      <h4 class="title">입력</h4>
       <form id="inputForm" action="/save" method="post">
         <div class="input-field">
           <input
@@ -78,20 +55,10 @@
         <div class="input-field">
           <input
             type="number"
-            id="unitPrice"
-            name="unitPrice"
-            readonly
-            autocomplete="off"
-          />
-          <label for="unitPrice" class="active">충전단가</label>
-        </div>
-        <div class="input-field">
-          <input
-            type="number"
             id="point"
             name="point"
-            autocomplete="off"
             value="0"
+            autocomplete="off"
           />
           <label for="point" class="active">포인트 사용</label>
         </div>
@@ -130,9 +97,9 @@
               <option value="100">100%</option>
               <option value="80">80%</option>
               <option value="70">70%</option>
-              <option value="50">50%</option>
-              <option value="30">30%</option>
-              <option value="0">0%</option>
+              <option value="50%">50%</option>
+              <option value="30%">30%</option>
+              <option value="0%">0%</option>
             </select>
             <label for="discountRate" class="active">할인율</label>
           </div>
@@ -157,8 +124,10 @@
           </select>
           <label for="company" class="active">사업자</label>
         </div>
-        <button type="submit" class="btn">저장</button>
-        <a class="btn red" href="/">취소</a>
+        <div class="button-container">
+          <button type="submit" class="btn">저장</button>
+          <a class="btn red" href="/">취소</a>
+        </div>
       </form>
     </div>
 
