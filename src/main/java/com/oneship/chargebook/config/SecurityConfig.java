@@ -1,49 +1,63 @@
 package com.oneship.chargebook.config;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.SecurityFilterChain;
 
 import com.oneship.chargebook.service.CustomUserDetailsService;
 
 @Configuration
 @EnableWebSecurity
-public class SecurityConfig extends WebSecurityConfigurerAdapter {
+public class SecurityConfig {
 
     @Autowired
     private CustomUserDetailsService userDetailsService;
 
-    @Autowired
-    private PasswordEncoder passwordEncoder;
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
 
-    @Override
-    protected void configure(HttpSecurity http) throws Exception {
+    @Bean
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
             .authorizeRequests()
-                .antMatchers("/register", "/login", "/h2-console/**").permitAll() // 로그인 및 회원가입, H2 콘솔은 인증 없이 접근 가능
-                .anyRequest().authenticated() // 다른 모든 요청은 인증 필요
+                .antMatchers("/register", "/login", "/h2-console/**").permitAll()
+                .anyRequest().authenticated()
                 .and()
             .formLogin()
                 .loginPage("/login")
-                .defaultSuccessUrl("/", true) // 로그인 성공 시 메인 페이지로 리다이렉션
-                .failureUrl("/login?error=true") // 로그인 실패 시 에러 파라미터 추가
+                .defaultSuccessUrl("/", true)
+                .failureUrl("/login?error=true")
                 .permitAll()
                 .and()
+            .oauth2Login()
+                .loginPage("/login")
+                .defaultSuccessUrl("/", true)
+                .userInfoEndpoint()
+                .userService(userDetailsService)
+                .and()
+                .and()
             .logout()
-                .logoutSuccessUrl("/login?logout=true") // 로그아웃 성공 시 메시지 표시
+                .logoutSuccessUrl("/login?logout=true")
                 .permitAll();
 
         // H2 Console 설정 추가
         http.csrf().disable();
         http.headers().frameOptions().disable();
+
+        return http.build();
     }
 
-    @Override
-    protected void configure(AuthenticationManagerBuilder auth) throws Exception {
-        auth.userDetailsService(userDetailsService).passwordEncoder(passwordEncoder);
+    @Bean
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
+        return authenticationConfiguration.getAuthenticationManager();
     }
 }
