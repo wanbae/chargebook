@@ -35,6 +35,7 @@
             name="date"
             th:value="${#dates.format(today, 'yyyy-MM-dd')}"
             autocomplete="off"
+            required
           />
           <label for="date" class="active">날짜</label>
         </div>
@@ -45,11 +46,18 @@
             id="amountOfCharge"
             name="amountOfCharge"
             autocomplete="off"
+            required
           />
           <label for="amountOfCharge" class="active">충전량</label>
         </div>
         <div class="input-field">
-          <input type="number" id="price" name="price" autocomplete="off" />
+          <input
+            type="number"
+            id="price"
+            name="price"
+            autocomplete="off"
+            required
+          />
           <label for="price" class="active">충전금액</label>
         </div>
         <div class="input-field">

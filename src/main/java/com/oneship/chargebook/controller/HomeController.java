@@ -87,6 +87,7 @@ public class HomeController {
 
     @PostMapping("/save")
     public String save(@ModelAttribute ChargeData chargeData) {
+        ensureNonNullValues(chargeData);
         chargeDataService.saveChargeData(chargeData);
         return "redirect:/";
     }
@@ -104,6 +105,7 @@ public class HomeController {
 
     @PostMapping("/update")
     public String update(@ModelAttribute ChargeData chargeData) {
+        ensureNonNullValues(chargeData);
         chargeDataService.saveChargeData(chargeData);
         return "redirect:/";
     }
@@ -126,5 +128,32 @@ public class HomeController {
             response.put("message", e.getMessage());
         }
         return response;
+    }
+
+    private void ensureNonNullValues(ChargeData chargeData) {
+        if (chargeData.getAmountOfCharge() == null) {
+            chargeData.setAmountOfCharge(0.0);
+        }
+        if (chargeData.getPrice() == null) {
+            chargeData.setPrice(0);
+        }
+        if (chargeData.getPoint() == null) {
+            chargeData.setPoint(0);
+        }
+        if (chargeData.getDistance() == null) {
+            chargeData.setDistance(0);
+        }
+        if (chargeData.getDiscountRate() == null) {
+            chargeData.setDiscountRate(0);
+        }
+        if (chargeData.getDiscountedPrice() == null) {
+            chargeData.setDiscountedPrice(0);
+        }
+        if (chargeData.getFinalPrice() == null) {
+            chargeData.setFinalPrice(0);
+        }
+        if (chargeData.getFinalUnitPrice() == null) {
+            chargeData.setFinalUnitPrice(0);
+        }
     }
 }

@@ -57,6 +57,7 @@
             name="date"
             th:value="${#dates.format(chargeData.date, 'yyyy-MM-dd')}"
             autocomplete="off"
+            required
           />
           <label for="date" class="active">날짜</label>
         </div>
@@ -68,6 +69,7 @@
             name="amountOfCharge"
             th:value="${chargeData.amountOfCharge}"
             autocomplete="off"
+            required
           />
           <label for="amountOfCharge" class="active">충전량</label>
         </div>
@@ -78,6 +80,7 @@
             name="price"
             th:value="${chargeData.price}"
             autocomplete="off"
+            required
           />
           <label for="price" class="active">충전금액</label>
         </div>

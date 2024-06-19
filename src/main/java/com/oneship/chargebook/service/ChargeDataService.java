@@ -29,6 +29,13 @@ public class ChargeDataService {
     }
 
     public void saveChargeData(ChargeData chargeData) {
+        ensureNonNullValues(chargeData);
+        calculateValues(chargeData);
+        chargeDataRepository.save(chargeData);
+    }
+
+    public void updateChargeData(ChargeData chargeData) {
+        ensureNonNullValues(chargeData);
         calculateValues(chargeData);
         chargeDataRepository.save(chargeData);
     }
@@ -57,6 +64,33 @@ public class ChargeDataService {
             totalChargeByCompany.merge(data.getCompany(), data.getAmountOfCharge().intValue(), Integer::sum);
         }
         return totalChargeByCompany;
+    }
+
+    private void ensureNonNullValues(ChargeData chargeData) {
+        if (chargeData.getAmountOfCharge() == null) {
+            chargeData.setAmountOfCharge(0.0);
+        }
+        if (chargeData.getPrice() == null) {
+            chargeData.setPrice(0);
+        }
+        if (chargeData.getPoint() == null) {
+            chargeData.setPoint(0);
+        }
+        if (chargeData.getDistance() == null) {
+            chargeData.setDistance(0);
+        }
+        if (chargeData.getDiscountRate() == null) {
+            chargeData.setDiscountRate(0);
+        }
+        if (chargeData.getDiscountedPrice() == null) {
+            chargeData.setDiscountedPrice(0);
+        }
+        if (chargeData.getFinalPrice() == null) {
+            chargeData.setFinalPrice(0);
+        }
+        if (chargeData.getFinalUnitPrice() == null) {
+            chargeData.setFinalUnitPrice(0);
+        }
     }
 
     private void calculateValues(ChargeData chargeData) {

@@ -2,6 +2,7 @@ package com.oneship.chargebook.model;
 
 import lombok.Data;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -16,8 +17,13 @@ public class ChargeData {
     private Long id;
 
     private Date date;
+    
+    @Column(nullable = false)
     private Double amountOfCharge = 0.0;
+
+    @Column(nullable = false)
     private Integer price = 0;
+
     private Integer point = 0;
     private Integer distance = 0;
     private Integer discountRate = 0;
