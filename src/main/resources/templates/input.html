@@ -13,7 +13,39 @@
       body {
         padding: 20px;
       }
+      .input-field
+        input[type="number"]:not(.browser-default):not([readonly])
+        + label {
+        transform: translateY(-14px) scale(0.8);
+      }
     </style>
+    <script>
+      function calculateUnitPrice() {
+        var amountOfCharge = document.getElementById("amountOfCharge").value;
+        var price = document.getElementById("price").value;
+        var unitPrice = document.getElementById("unitPrice");
+
+        if (amountOfCharge && price) {
+          unitPrice.value = Math.round(price / amountOfCharge);
+        } else {
+          unitPrice.value = "";
+        }
+      }
+
+      document.addEventListener("DOMContentLoaded", function () {
+        var amountOfChargeInput = document.getElementById("amountOfCharge");
+        var priceInput = document.getElementById("price");
+
+        amountOfChargeInput.addEventListener("input", calculateUnitPrice);
+        priceInput.addEventListener("input", calculateUnitPrice);
+
+        // 포인트 기본값 설정
+        var pointInput = document.getElementById("point");
+        if (!pointInput.value) {
+          pointInput.value = 0;
+        }
+      });
+    </script>
   </head>
   <body>
     <div class="container">
@@ -32,6 +64,7 @@
         <div class="input-field">
           <input
             type="number"
+            step="0.01"
             id="amountOfCharge"
             name="amountOfCharge"
             autocomplete="off"
@@ -47,12 +80,19 @@
             type="number"
             id="unitPrice"
             name="unitPrice"
+            readonly
             autocomplete="off"
           />
-          <label for="unitPrice" class="active">단가</label>
+          <label for="unitPrice" class="active">충전단가</label>
         </div>
         <div class="input-field">
-          <input type="number" id="point" name="point" autocomplete="off" />
+          <input
+            type="number"
+            id="point"
+            name="point"
+            autocomplete="off"
+            value="0"
+          />
           <label for="point" class="active">포인트 사용</label>
         </div>
         <div class="input-field">

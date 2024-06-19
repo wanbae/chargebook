@@ -3,120 +3,49 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Main Page</title>
+    <title>EV 충전</title>
     <!-- Materialize CSS -->
     <link
       href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css"
       rel="stylesheet"
     />
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <!-- Custom Styles -->
-    <style>
-      body {
-        padding: 20px;
-      }
-      .header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-      }
-      .header h1 {
-        margin: 0;
-      }
-      .summary-tables {
-        display: flex;
-        justify-content: space-between;
-        flex-wrap: wrap;
-        margin-top: 20px;
-      }
-      .summary-table {
-        flex: 1;
-        margin: 10px;
-      }
-      .summary-table h5 {
-        margin: 0 0 10px 0;
-      }
-      .month-selector {
-        margin-top: 20px;
-      }
-      @media (max-width: 600px) {
-        table {
-          font-size: 12px;
-        }
-        th,
-        td {
-          padding: 8px;
-        }
-        .summary-tables {
-          flex-direction: column;
-        }
-      }
-      tr.clickable-row {
-        cursor: pointer;
-      }
-      .button-container {
-        display: flex;
-        justify-content: flex-end;
-        margin-top: 20px;
-      }
-    </style>
+    <link href="/css/styles.css" rel="stylesheet" />
   </head>
   <body>
     <div class="container">
       <div class="header">
-        <h1 th:text="${selectedMonth} + ' 충전 기록'">Main Page</h1>
-        <form
-          id="monthForm"
-          action="/"
-          method="get"
-          class="input-field month-selector"
-        >
-          <input
-            type="month"
-            id="month"
-            name="month"
-            th:value="${selectedMonth}"
-            onchange="document.getElementById('monthForm').submit();"
-          />
-        </form>
-        <ul id="userDropdown" class="dropdown-content">
-          <li><a href="#">Profile</a></li>
-          <li class="divider" tabindex="-1"></li>
-          <li><a href="/logout">Logout</a></li>
-        </ul>
-        <a class="btn dropdown-trigger" href="#" data-target="userDropdown">
-          <img
-            src="https://via.placeholder.com/30"
-            class="circle"
-            alt="User Avatar"
-          />
-          <span th:text="${#authentication.name}"></span>
-        </a>
+        <h1>EV 충전</h1>
+        <div class="header-right">
+          <form
+            id="monthForm"
+            action="/"
+            method="get"
+            class="input-field month-selector"
+          >
+            <input
+              type="month"
+              id="month"
+              name="month"
+              th:value="${selectedMonth}"
+              onchange="document.getElementById('monthForm').submit();"
+            />
+          </form>
+          <ul id="userDropdown" class="dropdown-content">
+            <li><a href="#">Profile</a></li>
+            <li class="divider" tabindex="-1"></li>
+            <li><a href="/logout">Logout</a></li>
+          </ul>
+          <a class="btn dropdown-trigger" href="#" data-target="userDropdown">
+            <img
+              src="https://via.placeholder.com/30"
+              class="circle"
+              alt="User Avatar"
+            />
+            <span th:text="${#authentication.name}"></span>
+          </a>
+        </div>
       </div>
-      <canvas id="cardChart"></canvas>
-      <script>
-        var ctx = document.getElementById('cardChart').getContext('2d');
-        var cardChart = new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: /* 카드 이름 목록 */,
-                datasets: [{
-                    label: '카드별 청구금액',
-                    data: /* 청구금액 데이터 */,
-                    backgroundColor: 'rgba(54, 162, 235, 0.2)',
-                    borderColor: 'rgba(54, 162, 235, 1)',
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                scales: {
-                    y: {
-                        beginAtZero: true
-                    }
-                }
-            }
-        });
-      </script>
       <div class="summary-tables">
         <div class="summary-table">
           <h5>카드별 청구금액 총합</h5>
@@ -158,51 +87,63 @@
       <div th:if="${#lists.isEmpty(chargeDataList)}">
         <p>충전기록이 없습니다</p>
       </div>
-      <table
-        class="striped responsive-table"
-        th:unless="${#lists.isEmpty(chargeDataList)}"
-      >
-        <thead>
-          <tr>
-            <th>날짜</th>
-            <th>충전량</th>
-            <th>충전금액</th>
-            <th>단가</th>
-            <th>포인트 사용</th>
-            <th>할인후 금액</th>
-            <th>할인율</th>
-            <th>청구금액</th>
-            <th>청구단가</th>
-            <th>누적주행거리</th>
-            <th>카드</th>
-            <th>사업자</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr
-            th:each="data : ${chargeDataList}"
-            th:onclick="|window.location='/edit/${data.id}'|"
-            class="clickable-row"
-          >
-            <td th:text="${#dates.format(data.date, 'yyyy-MM-dd')}"></td>
-            <td th:text="${data.amountOfCharge}"></td>
-            <td th:text="${data.price}"></td>
-            <td th:text="${data.unitPrice}"></td>
-            <td th:text="${data.point}"></td>
-            <td th:text="${data.discountedPrice}"></td>
-            <td th:text="${data.discountRate}"></td>
-            <td th:text="${data.finalPrice}"></td>
-            <td th:text="${data.finalUnitPrice}"></td>
-            <td th:text="${data.distance}"></td>
-            <td
-              th:text="${data.card == 'BC' ? '비씨카드' : data.card == 'Samsung' ? '삼성카드' : data.card == 'Shinhan' ? '신한카드' : data.card == 'Hana' ? '하나카드' : data.card}"
-            ></td>
-            <td th:text="${data.company}"></td>
-          </tr>
-        </tbody>
-      </table>
+      <div class="table-responsive">
+        <table class="striped responsive-table">
+          <thead>
+            <tr>
+              <th>날짜</th>
+              <th class="hide-on-small-only">충전량</th>
+              <th>충전금액</th>
+              <th class="hide-on-small-only">단가</th>
+              <th class="hide-on-small-only">포인트 사용</th>
+              <th class="hide-on-small-only">할인후 금액</th>
+              <th class="hide-on-small-only">청구금액</th>
+              <th class="hide-on-small-only">청구단가</th>
+              <th class="hide-on-small-only">누적주행거리</th>
+              <th>카드</th>
+              <th>사업자</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr
+              th:each="data : ${chargeDataList}"
+              th:onclick="|window.location='/edit/${data.id}'|"
+              class="clickable-row"
+            >
+              <td
+                class="date-col"
+                th:data-full="${#dates.format(data.date, 'yyyy.MM.dd')}"
+                th:data-short="${#dates.format(data.date, 'MM.dd')}"
+                th:text="${#dates.format(data.date, 'yyyy.MM.dd')}"
+              ></td>
+              <td
+                th:text="${data.amountOfCharge}"
+                class="hide-on-small-only"
+              ></td>
+              <td th:text="${data.price}"></td>
+              <td th:text="${data.unitPrice}" class="hide-on-small-only"></td>
+              <td th:text="${data.point}" class="hide-on-small-only"></td>
+              <td
+                th:text="${data.discountedPrice}"
+                class="hide-on-small-only"
+              ></td>
+              <td th:text="${data.finalPrice}" class="hide-on-small-only"></td>
+              <td
+                th:text="${data.finalUnitPrice}"
+                class="hide-on-small-only"
+              ></td>
+              <td th:text="${data.distance}" class="hide-on-small-only"></td>
+              <td
+                th:text="${data.card == 'BC' ? '비씨카드' : data.card == 'Samsung' ? '삼성카드' : data.card == 'Shinhan' ? '신한카드' : data.card == 'Hana' ? '하나카드' : data.card}"
+              ></td>
+              <td th:text="${data.company}"></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
       <div class="button-container">
-        <a class="btn" href="/input">입력</a>
+        <a class="btn left" href="/chart">차트 보기</a>
+        <a class="btn right" href="/input">입력</a>
       </div>
     </div>
 
@@ -212,6 +153,30 @@
       document.addEventListener("DOMContentLoaded", function () {
         var elems = document.querySelectorAll(".dropdown-trigger");
         var instances = M.Dropdown.init(elems);
+
+        var dateCols = document.querySelectorAll(".date-col");
+        if (window.innerWidth <= 600) {
+          dateCols.forEach(function (col) {
+            col.textContent = col.getAttribute("data-short");
+          });
+        } else {
+          dateCols.forEach(function (col) {
+            col.textContent = col.getAttribute("data-full");
+          });
+        }
+      });
+
+      window.addEventListener("resize", function () {
+        var dateCols = document.querySelectorAll(".date-col");
+        if (window.innerWidth <= 600) {
+          dateCols.forEach(function (col) {
+            col.textContent = col.getAttribute("data-short");
+          });
+        } else {
+          dateCols.forEach(function (col) {
+            col.textContent = col.getAttribute("data-full");
+          });
+        }
       });
     </script>
   </body>

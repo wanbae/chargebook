@@ -54,7 +54,7 @@ public class ChargeDataService {
         List<ChargeData> monthlyData = getChargeDataByMonth(month);
         Map<String, Integer> totalChargeByCompany = new HashMap<>();
         for (ChargeData data : monthlyData) {
-            totalChargeByCompany.merge(data.getCompany(), data.getAmountOfCharge(), Integer::sum);
+            totalChargeByCompany.merge(data.getCompany(), data.getAmountOfCharge().intValue(), Integer::sum);
         }
         return totalChargeByCompany;
     }
@@ -63,11 +63,11 @@ public class ChargeDataService {
         int price = chargeData.getPrice() != null ? chargeData.getPrice() : 0;
         int point = chargeData.getPoint() != null ? chargeData.getPoint() : 0;
         int discountRate = chargeData.getDiscountRate() != null ? chargeData.getDiscountRate() : 0;
-        int amountOfCharge = chargeData.getAmountOfCharge() != null ? chargeData.getAmountOfCharge() : 0;
+        double amountOfCharge = chargeData.getAmountOfCharge() != null ? chargeData.getAmountOfCharge() : 0.0;
 
         int discountedPrice = price - point;
         int finalPrice = Math.round(discountedPrice * (100 - discountRate) / 100);
-        int finalUnitPrice = amountOfCharge == 0 ? 0 : Math.round(finalPrice / amountOfCharge);
+        int finalUnitPrice = amountOfCharge == 0.0 ? 0 : (int) Math.round(finalPrice / amountOfCharge);
 
         chargeData.setDiscountedPrice(discountedPrice);
         chargeData.setFinalPrice(finalPrice);
