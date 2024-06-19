@@ -9,6 +9,7 @@
       href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css"
       rel="stylesheet"
     />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <!-- Custom Styles -->
     <style>
       body {
@@ -78,7 +79,44 @@
             onchange="document.getElementById('monthForm').submit();"
           />
         </form>
+        <ul id="userDropdown" class="dropdown-content">
+          <li><a href="#">Profile</a></li>
+          <li class="divider" tabindex="-1"></li>
+          <li><a href="/logout">Logout</a></li>
+        </ul>
+        <a class="btn dropdown-trigger" href="#" data-target="userDropdown">
+          <img
+            src="https://via.placeholder.com/30"
+            class="circle"
+            alt="User Avatar"
+          />
+          <span th:text="${#authentication.name}"></span>
+        </a>
       </div>
+      <canvas id="cardChart"></canvas>
+      <script>
+        var ctx = document.getElementById('cardChart').getContext('2d');
+        var cardChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: /* 카드 이름 목록 */,
+                datasets: [{
+                    label: '카드별 청구금액',
+                    data: /* 청구금액 데이터 */,
+                    backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+      </script>
       <div class="summary-tables">
         <div class="summary-table">
           <h5>카드별 청구금액 총합</h5>
@@ -170,5 +208,11 @@
 
     <!-- Materialize JavaScript -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        var elems = document.querySelectorAll(".dropdown-trigger");
+        var instances = M.Dropdown.init(elems);
+      });
+    </script>
   </body>
 </html>
