@@ -41,4 +41,13 @@ public class CustomUserDetailsService implements UserDetailsService {
                 .roles(role)
                 .build();
     }
+
+    // 사용자 엔티티를 반환하는 메서드 추가
+    public User getUserByUsername(String username) throws UsernameNotFoundException {
+        User user = userRepository.findByUsername(username);
+        if (user == null) {
+            throw new UsernameNotFoundException("User not found with username: " + username);
+        }
+        return user;
+    }
 }

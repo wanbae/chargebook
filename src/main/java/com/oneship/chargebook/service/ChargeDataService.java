@@ -1,6 +1,7 @@
 package com.oneship.chargebook.service;
 
 import com.oneship.chargebook.model.ChargeData;
+import com.oneship.chargebook.model.User;
 import com.oneship.chargebook.repository.ChargeDataRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -16,16 +17,16 @@ public class ChargeDataService {
     @Autowired
     private ChargeDataRepository chargeDataRepository;
 
-    public List<ChargeData> getChargeDataByMonth(String month) {
-        return chargeDataRepository.findByMonth(month);
+    public List<ChargeData> getChargeDataByMonthAndUser(String month, User user) {
+        return chargeDataRepository.findByMonthAndUser(month, user);
     }
 
-    public List<ChargeData> getAllChargeData() {
-        return chargeDataRepository.findAll();
+    public List<ChargeData> getAllChargeDataByUser(User user) {
+        return chargeDataRepository.findByUser(user);
     }
 
-    public Optional<ChargeData> getChargeDataById(Long id) {
-        return chargeDataRepository.findById(id);
+    public Optional<ChargeData> getChargeDataByIdAndUser(Long id, User user) {
+        return chargeDataRepository.findByIdAndUser(id, user);
     }
 
     public void saveChargeData(ChargeData chargeData) {
@@ -40,16 +41,17 @@ public class ChargeDataService {
         chargeDataRepository.save(chargeData);
     }
 
-    public void deleteChargeData(Long id) {
-        chargeDataRepository.deleteById(id);
+    public void deleteChargeData(Long id, User user) {
+        Optional<ChargeData> chargeData = chargeDataRepository.findByIdAndUser(id, user);
+        chargeData.ifPresent(chargeDataRepository::delete);
     }
 
-    public int getAccumulatedDistance() {
-        return chargeDataRepository.getAccumulatedDistance();
+    public int getAccumulatedDistance(User user) {
+        return chargeDataRepository.getAccumulatedDistance(user);
     }
 
-    public Map<String, Integer> getTotalPriceByCard(String month) {
-        List<ChargeData> monthlyData = getChargeDataByMonth(month);
+    public Map<String, Integer> getTotalPriceByCard(String month, User user) {
+        List<ChargeData> monthlyData = getChargeDataByMonthAndUser(month, user);
         Map<String, Integer> totalPriceByCard = new HashMap<>();
         for (ChargeData data : monthlyData) {
             totalPriceByCard.merge(data.getCard(), data.getPrice(), Integer::sum);
@@ -57,8 +59,8 @@ public class ChargeDataService {
         return totalPriceByCard;
     }
 
-    public Map<String, Integer> getTotalChargeByCompany(String month) {
-        List<ChargeData> monthlyData = getChargeDataByMonth(month);
+    public Map<String, Integer> getTotalChargeByCompany(String month, User user) {
+        List<ChargeData> monthlyData = getChargeDataByMonthAndUser(month, user);
         Map<String, Integer> totalChargeByCompany = new HashMap<>();
         for (ChargeData data : monthlyData) {
             totalChargeByCompany.merge(data.getCompany(), data.getAmountOfCharge().intValue(), Integer::sum);

@@ -1,11 +1,9 @@
 package com.oneship.chargebook.model;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.Table;
 import lombok.Data;
+
+import javax.persistence.*;
+import java.util.Set;
 
 @Entity
 @Table(name = "users") // 테이블 이름을 명시적으로 변경
@@ -18,4 +16,7 @@ public class User {
     private String username;
     private String password;
     private String role;
+
+    @OneToMany(mappedBy = "user")
+    private Set<ChargeData> chargeData;
 }

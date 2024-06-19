@@ -1,5 +1,6 @@
 package com.oneship.chargebook.controller;
 
+import java.security.Principal;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
@@ -21,8 +22,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.oneship.chargebook.model.ChargeData;
+import com.oneship.chargebook.model.User;
 import com.oneship.chargebook.service.CardDiscountService;
 import com.oneship.chargebook.service.ChargeDataService;
+import com.oneship.chargebook.service.CustomUserDetailsService;
 
 @Controller
 public class HomeController {
@@ -33,6 +36,9 @@ public class HomeController {
     @Autowired
     private CardDiscountService cardDiscountService;
 
+    @Autowired
+    private CustomUserDetailsService userDetailsService;
+
     @InitBinder
     public void initBinder(WebDataBinder binder) {
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
@@ -41,19 +47,20 @@ public class HomeController {
     }
 
     @GetMapping("/")
-    public String index(Model model, @RequestParam(value = "month", required = false) String month) {
+    public String index(Model model, @RequestParam(value = "month", required = false) String month, Principal principal) {
         if (month == null || month.isEmpty()) {
             SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM");
             month = sdf.format(new Date());
         }
 
-        List<ChargeData> chargeDataList = chargeDataService.getChargeDataByMonth(month);
+        User user = userDetailsService.getUserByUsername(principal.getName());
+        List<ChargeData> chargeDataList = chargeDataService.getChargeDataByMonthAndUser(month, user);
         model.addAttribute("chargeDataList", chargeDataList);
         model.addAttribute("selectedMonth", month);
 
         // 카드별 청구금액 총합 및 사업자별 충전량 총합 계산
-        Map<String, Integer> totalPriceByCard = chargeDataService.getTotalPriceByCard(month);
-        Map<String, Integer> totalChargeByCompany = chargeDataService.getTotalChargeByCompany(month);
+        Map<String, Integer> totalPriceByCard = chargeDataService.getTotalPriceByCard(month, user);
+        Map<String, Integer> totalChargeByCompany = chargeDataService.getTotalChargeByCompany(month, user);
         model.addAttribute("totalPriceByCard", totalPriceByCard);
         model.addAttribute("totalChargeByCompany", totalChargeByCompany);
 
@@ -61,17 +68,18 @@ public class HomeController {
     }
 
     @GetMapping("/chart")
-    public String chart(Model model, @RequestParam(value = "month", required = false) String month) {
+    public String chart(Model model, @RequestParam(value = "month", required = false) String month, Principal principal) {
         if (month == null || month.isEmpty()) {
             SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM");
             month = sdf.format(new Date());
         }
 
-        List<ChargeData> chargeDataList = chargeDataService.getChargeDataByMonth(month);
+        User user = userDetailsService.getUserByUsername(principal.getName());
+        List<ChargeData> chargeDataList = chargeDataService.getChargeDataByMonthAndUser(month, user);
         model.addAttribute("selectedMonth", month);
 
         // 차트 데이터 추가
-        Map<String, Integer> totalPriceByCard = chargeDataService.getTotalPriceByCard(month);
+        Map<String, Integer> totalPriceByCard = chargeDataService.getTotalPriceByCard(month, user);
         model.addAttribute("cardNames", totalPriceByCard.keySet());
         model.addAttribute("cardPrices", totalPriceByCard.values());
 
@@ -86,15 +94,17 @@ public class HomeController {
     }
 
     @PostMapping("/save")
-    public String save(@ModelAttribute ChargeData chargeData) {
-        ensureNonNullValues(chargeData);
+    public String save(@ModelAttribute ChargeData chargeData, Principal principal) {
+        User user = userDetailsService.getUserByUsername(principal.getName());
+        chargeData.setUser(user);
         chargeDataService.saveChargeData(chargeData);
         return "redirect:/";
     }
 
     @GetMapping("/edit/{id}")
-    public String edit(@PathVariable Long id, Model model) {
-        Optional<ChargeData> chargeDataOptional = chargeDataService.getChargeDataById(id);
+    public String edit(@PathVariable Long id, Model model, Principal principal) {
+        User user = userDetailsService.getUserByUsername(principal.getName());
+        Optional<ChargeData> chargeDataOptional = chargeDataService.getChargeDataByIdAndUser(id, user);
         if (chargeDataOptional.isPresent()) {
             model.addAttribute("chargeData", chargeDataOptional.get());
             return "edit";
@@ -104,16 +114,18 @@ public class HomeController {
     }
 
     @PostMapping("/update")
-    public String update(@ModelAttribute ChargeData chargeData) {
-        ensureNonNullValues(chargeData);
-        chargeDataService.saveChargeData(chargeData);
+    public String update(@ModelAttribute ChargeData chargeData, Principal principal) {
+        User user = userDetailsService.getUserByUsername(principal.getName());
+        chargeData.setUser(user);
+        chargeDataService.updateChargeData(chargeData);
         return "redirect:/";
     }
 
     @DeleteMapping("/delete/{id}")
     @ResponseBody
-    public void delete(@PathVariable Long id) {
-        chargeDataService.deleteChargeData(id);
+    public void delete(@PathVariable Long id, Principal principal) {
+        User user = userDetailsService.getUserByUsername(principal.getName());
+        chargeDataService.deleteChargeData(id, user);
     }
 
     @GetMapping("/api/getDiscountRate")
