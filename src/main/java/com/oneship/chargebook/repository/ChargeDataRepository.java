@@ -11,7 +11,7 @@ import com.oneship.chargebook.model.ChargeData;
 @Repository
 public interface ChargeDataRepository extends JpaRepository<ChargeData, Long> {
 
-    @Query("SELECT c FROM ChargeData c WHERE FUNCTION('FORMATDATETIME', c.date, 'yyyy-MM') = ?1")
+    @Query("SELECT c FROM ChargeData c WHERE FUNCTION('FORMATDATETIME', c.date, 'yyyy-MM') = ?1 ORDER BY c.date DESC")
     List<ChargeData> findByMonth(String month);
 
     @Query("SELECT COALESCE(SUM(c.distance), 0) FROM ChargeData c")
