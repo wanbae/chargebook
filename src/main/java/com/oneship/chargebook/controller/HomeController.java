@@ -8,18 +8,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.WebDataBinder;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.InitBinder;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 
 import com.oneship.chargebook.model.ChargeData;
 import com.oneship.chargebook.model.User;
@@ -27,17 +19,15 @@ import com.oneship.chargebook.service.CardDiscountService;
 import com.oneship.chargebook.service.ChargeDataService;
 import com.oneship.chargebook.service.CustomUserDetailsService;
 
+import lombok.RequiredArgsConstructor;
+
 @Controller
+@RequiredArgsConstructor
 public class HomeController {
 
-    @Autowired
-    private ChargeDataService chargeDataService;
-
-    @Autowired
-    private CardDiscountService cardDiscountService;
-
-    @Autowired
-    private CustomUserDetailsService userDetailsService;
+    private final ChargeDataService chargeDataService;
+    private final CardDiscountService cardDiscountService;
+    private final CustomUserDetailsService userDetailsService;
 
     @InitBinder
     public void initBinder(WebDataBinder binder) {
@@ -136,6 +126,20 @@ public class HomeController {
             int discountRate = cardDiscountService.getDiscountByCardName(cardName);
             response.put("discountRate", discountRate);
         } catch (IllegalArgumentException e) {
+            response.put("error", 1); // Error code to indicate failure
+            response.put("message", e.getMessage());
+        }
+        return response;
+    }
+
+    @GetMapping("/api/accumulatedDistance")
+    @ResponseBody
+    public Map<String, Object> getAccumulatedDistance(Principal principal) {
+        Map<String, Object> response = new HashMap<>();
+        try {
+            long accumulatedDistance = chargeDataService.getLatestAccumulatedDistance();
+            response.put("distance", accumulatedDistance);
+        } catch (Exception e) {
             response.put("error", 1); // Error code to indicate failure
             response.put("message", e.getMessage());
         }

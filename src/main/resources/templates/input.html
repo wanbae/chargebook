@@ -22,6 +22,14 @@
         gap: 10px;
         margin-top: 20px;
       }
+      .input-row {
+        display: flex;
+        align-items: center;
+      }
+      .progress {
+        display: none;
+        margin-top: 10px;
+      }
     </style>
   </head>
   <body>
@@ -70,15 +78,27 @@
           />
           <label for="point" class="active">포인트 사용</label>
         </div>
-        <div class="input-field">
-          <input
-            type="number"
-            id="distance"
-            name="distance"
-            th:value="${accumulatedDistance}"
-            autocomplete="off"
-          />
-          <label for="distance" class="active">누적 주행거리</label>
+        <div class="input-row">
+          <div class="input-field" style="flex: 1">
+            <input
+              type="number"
+              id="distance"
+              name="distance"
+              th:value="${accumulatedDistance}"
+              autocomplete="off"
+            />
+            <label for="distance" class="active">누적 주행거리</label>
+          </div>
+          <button
+            type="button"
+            class="btn"
+            onclick="fetchAccumulatedDistance()"
+          >
+            조회
+          </button>
+        </div>
+        <div class="progress">
+          <div class="indeterminate"></div>
         </div>
         <div class="row">
           <div class="input-field col s6">
@@ -105,9 +125,9 @@
               <option value="100">100%</option>
               <option value="80">80%</option>
               <option value="70">70%</option>
-              <option value="50%">50%</option>
-              <option value="30%">30%</option>
-              <option value="0%">0%</option>
+              <option value="50">50%</option>
+              <option value="30">30%</option>
+              <option value="0">0%</option>
             </select>
             <label for="discountRate" class="active">할인율</label>
           </div>
@@ -142,6 +162,22 @@
     <!-- Materialize JavaScript -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
     <script>
+      function fetchAccumulatedDistance() {
+        document.querySelector(".progress").style.display = "block";
+        fetch("/api/accumulatedDistance")
+          .then((response) => response.json())
+          .then((data) => {
+            document.querySelector(".progress").style.display = "none";
+            const distanceInput = document.getElementById("distance");
+            distanceInput.value = data.distance;
+            M.updateTextFields(); // Materialize CSS에서 label을 업데이트하는 함수 호출
+          })
+          .catch((error) => {
+            document.querySelector(".progress").style.display = "none";
+            console.error("Error fetching accumulated distance:", error);
+          });
+      }
+
       document.addEventListener("DOMContentLoaded", function () {
         var cardSelect = document.getElementById("card");
         cardSelect.addEventListener("change", function () {
@@ -153,13 +189,16 @@
           fetchDiscountRate(cardSelect.value);
         }
 
+        // 페이지 로드 시 누적 주행거리 자동 조회
+        fetchAccumulatedDistance();
+
         function fetchDiscountRate(cardName) {
           fetch(`/api/getDiscountRate?cardName=${cardName}`)
             .then((response) => response.json())
             .then((data) => {
               var discountRateSelect = document.getElementById("discountRate");
               discountRateSelect.value = data.discountRate;
-              M.FormSelect.init(discountRateSelect);
+              M.updateTextFields(); // Materialize CSS에서 label을 업데이트하는 함수 호출
               console.log("Discount rate set to:", data.discountRate);
             })
             .catch((error) =>

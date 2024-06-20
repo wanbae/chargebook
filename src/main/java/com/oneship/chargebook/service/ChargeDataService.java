@@ -17,6 +17,9 @@ public class ChargeDataService {
     @Autowired
     private ChargeDataRepository chargeDataRepository;
 
+    @Autowired
+    private KiaService kiaService;
+
     public List<ChargeData> getChargeDataByMonthAndUser(String month, User user) {
         return chargeDataRepository.findByMonthAndUser(month, user);
     }
@@ -48,6 +51,10 @@ public class ChargeDataService {
 
     public int getAccumulatedDistance(User user) {
         return chargeDataRepository.getAccumulatedDistance(user);
+    }
+
+    public long getLatestAccumulatedDistance() throws Exception {
+        return kiaService.getOdometer();
     }
 
     public Map<String, Integer> getTotalPriceByCard(String month, User user) {
