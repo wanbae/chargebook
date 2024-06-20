@@ -40,3 +40,4 @@ gradle/wrapper/gradle-wrapper.jar
 gradle/wrapper/gradle-wrapper.properties
 **/.DS_Store
 src/main/resources/application-secret.yml
+src/main/resources/application-test.yml
