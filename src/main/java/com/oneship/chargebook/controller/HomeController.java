@@ -8,6 +8,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.WebDataBinder;
@@ -37,13 +39,13 @@ public class HomeController {
     }
 
     @GetMapping("/")
-    public String index(Model model, @RequestParam(value = "month", required = false) String month, Principal principal) {
+    public String index(Model model, @RequestParam(value = "month", required = false) String month, @AuthenticationPrincipal OAuth2User principal) {
         if (month == null || month.isEmpty()) {
             SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM");
             month = sdf.format(new Date());
         }
 
-        User user = userDetailsService.getUserByUsername(principal.getName());
+        User user = userDetailsService.getUserByPrincipal(principal);
         List<ChargeData> chargeDataList = chargeDataService.getChargeDataByMonthAndUser(month, user);
         model.addAttribute("chargeDataList", chargeDataList);
         model.addAttribute("selectedMonth", month);
@@ -58,13 +60,13 @@ public class HomeController {
     }
 
     @GetMapping("/chart")
-    public String chart(Model model, @RequestParam(value = "month", required = false) String month, Principal principal) {
+    public String chart(Model model, @RequestParam(value = "month", required = false) String month, @AuthenticationPrincipal OAuth2User principal) {
         if (month == null || month.isEmpty()) {
             SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM");
             month = sdf.format(new Date());
         }
 
-        User user = userDetailsService.getUserByUsername(principal.getName());
+        User user = userDetailsService.getUserByPrincipal(principal);
         List<ChargeData> chargeDataList = chargeDataService.getChargeDataByMonthAndUser(month, user);
         model.addAttribute("selectedMonth", month);
 
@@ -84,16 +86,16 @@ public class HomeController {
     }
 
     @PostMapping("/save")
-    public String save(@ModelAttribute ChargeData chargeData, Principal principal) {
-        User user = userDetailsService.getUserByUsername(principal.getName());
-        chargeData.setUser(user);
+    public String save(@ModelAttribute ChargeData chargeData, @AuthenticationPrincipal OAuth2User principal) {
+        User user = userDetailsService.getUserByPrincipal(principal);
+        chargeData.setUser(user); // Ensure the user is set
         chargeDataService.saveChargeData(chargeData);
         return "redirect:/";
     }
 
     @GetMapping("/edit/{id}")
-    public String edit(@PathVariable Long id, Model model, Principal principal) {
-        User user = userDetailsService.getUserByUsername(principal.getName());
+    public String edit(@PathVariable Long id, Model model, @AuthenticationPrincipal OAuth2User principal) {
+        User user = userDetailsService.getUserByPrincipal(principal);
         Optional<ChargeData> chargeDataOptional = chargeDataService.getChargeDataByIdAndUser(id, user);
         if (chargeDataOptional.isPresent()) {
             model.addAttribute("chargeData", chargeDataOptional.get());
@@ -104,17 +106,17 @@ public class HomeController {
     }
 
     @PostMapping("/update")
-    public String update(@ModelAttribute ChargeData chargeData, Principal principal) {
-        User user = userDetailsService.getUserByUsername(principal.getName());
-        chargeData.setUser(user);
+    public String update(@ModelAttribute ChargeData chargeData, @AuthenticationPrincipal OAuth2User principal) {
+        User user = userDetailsService.getUserByPrincipal(principal);
+        chargeData.setUser(user); // Ensure the user is set
         chargeDataService.updateChargeData(chargeData);
         return "redirect:/";
     }
 
     @DeleteMapping("/delete/{id}")
     @ResponseBody
-    public void delete(@PathVariable Long id, Principal principal) {
-        User user = userDetailsService.getUserByUsername(principal.getName());
+    public void delete(@PathVariable Long id, @AuthenticationPrincipal OAuth2User principal) {
+        User user = userDetailsService.getUserByPrincipal(principal);
         chargeDataService.deleteChargeData(id, user);
     }
 
@@ -134,7 +136,7 @@ public class HomeController {
 
     @GetMapping("/api/accumulatedDistance")
     @ResponseBody
-    public Map<String, Object> getAccumulatedDistance(Principal principal) {
+    public Map<String, Object> getAccumulatedDistance(@AuthenticationPrincipal OAuth2User principal) {
         Map<String, Object> response = new HashMap<>();
         try {
             long accumulatedDistance = chargeDataService.getLatestAccumulatedDistance();

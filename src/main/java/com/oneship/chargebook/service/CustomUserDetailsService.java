@@ -13,6 +13,7 @@ import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.oauth2.core.user.OAuth2UserAuthority;
 import org.springframework.stereotype.Service;
+
 import java.util.Collections;
 
 @Service
@@ -56,5 +57,14 @@ public class CustomUserDetailsService implements UserDetailsService, OAuth2UserS
 
     public User getUserByUsername(String username) {
         return userRepository.findByUsername(username);
+    }
+
+    public User getUserByPrincipal(Object principal) {
+        if (principal instanceof OAuth2User) {
+            OAuth2User oAuth2User = (OAuth2User) principal;
+            String email = oAuth2User.getAttribute("email");
+            return userRepository.findByUsername(email);
+        }
+        return null;
     }
 }
