@@ -29,3 +29,8 @@ spring:
     hibernate:
       ddl-auto: update
     show-sql: false
+  devtools:
+    restart:
+      enabled: true
+    livereload:
+      enabled: true

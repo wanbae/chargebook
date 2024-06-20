@@ -22,7 +22,10 @@ dependencies {
     implementation 'org.projectlombok:lombok'
     implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
     implementation 'org.springframework.boot:spring-boot-starter-oauth2-resource-server'
+    implementation 'com.google.code.gson:gson:2.8.8' // Gson 라이브러리 추가
+    implementation 'commons-codec:commons-codec:1.15' // Apache Commons Codec 라이브러리 추가
     runtimeOnly 'com.h2database:h2'
+    developmentOnly 'org.springframework.boot:spring-boot-devtools' // DevTools 추가
     annotationProcessor 'org.projectlombok:lombok'
     annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
