@@ -49,8 +49,8 @@ public class KiaService {
             return 0D;
         }
         String result = getDteJson(false);
-        Map map = fromJson(result, Map.class);
-        return (Double) map.get("value");
+        Map<String, Object> map = fromJson(result, Map.class);
+        return ((Number) map.get("value")).doubleValue();
     }
 
     public long getOdometer() throws Exception {
@@ -59,7 +59,7 @@ public class KiaService {
             return 0;
         }
         String odometer = getOdometerJson(false);
-        Map map = fromJson(odometer, Map.class);
+        Map<String, Object> map = fromJson(odometer, Map.class);
         Object odometers = map.get("odometers");
         if (odometers != null && odometers instanceof List) {
             List odo = (List) odometers;
@@ -135,10 +135,11 @@ public class KiaService {
         return result;
     }
 
-    public Object getBatteryStatus() throws Exception {
+    public Double getBatteryStatus() throws Exception {
         String result = getBatteryStatusJson(false);
         logger.info("전기차 배터리 잔량: {}", result);
-        return fromJson(result, Map.class).get("soc");
+        Map<String, Object> map = fromJson(result, Map.class);
+        return ((Number) map.get("soc")).doubleValue();
     }
 
     protected String executeApiCall(String apiURL, String accessToken) {

@@ -6,6 +6,7 @@ import com.oneship.chargebook.repository.ChargeDataRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.security.Principal;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -16,6 +17,9 @@ public class ChargeDataService {
 
     @Autowired
     private ChargeDataRepository chargeDataRepository;
+
+    @Autowired
+    private CustomUserDetailsService userDetailsService;
 
     @Autowired
     private KiaService kiaService;
@@ -32,13 +36,19 @@ public class ChargeDataService {
         return chargeDataRepository.findByIdAndUser(id, user);
     }
 
-    public void saveChargeData(ChargeData chargeData) {
+    public void saveChargeData(ChargeData chargeData, Principal principal) {
+        User user = userDetailsService.getUserByPrincipal(principal);
+        chargeData.setUser(user);
+
         ensureNonNullValues(chargeData);
         calculateValues(chargeData);
         chargeDataRepository.save(chargeData);
     }
 
-    public void updateChargeData(ChargeData chargeData) {
+    public void updateChargeData(ChargeData chargeData, Principal principal) {
+        User user = userDetailsService.getUserByPrincipal(principal);
+        chargeData.setUser(user);
+
         ensureNonNullValues(chargeData);
         calculateValues(chargeData);
         chargeDataRepository.save(chargeData);
@@ -49,12 +59,16 @@ public class ChargeDataService {
         chargeData.ifPresent(chargeDataRepository::delete);
     }
 
-    public int getAccumulatedDistance(User user) {
-        return chargeDataRepository.getAccumulatedDistance(user);
+    public long getAccumulatedDistance(User user) throws Exception {
+        return kiaService.getOdometer();
     }
 
-    public long getLatestAccumulatedDistance() throws Exception {
-        return kiaService.getOdometer();
+    public Double getBatteryStatus(User user) throws Exception {
+        return kiaService.getBatteryStatus();
+    }
+
+    public Double getDrivingRange(User user) throws Exception {
+        return kiaService.getDte();
     }
 
     public Map<String, Integer> getTotalPriceByCard(String month, User user) {
@@ -99,6 +113,12 @@ public class ChargeDataService {
         }
         if (chargeData.getFinalUnitPrice() == null) {
             chargeData.setFinalUnitPrice(0);
+        }
+        if (chargeData.getBatteryStatus() == null) {
+            chargeData.setBatteryStatus(0.0);
+        }
+        if (chargeData.getDrivingRange() == null) {
+            chargeData.setDrivingRange(0.0);
         }
     }
 

@@ -6,18 +6,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
-import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
-import org.springframework.security.oauth2.client.userinfo.OAuth2UserService;
-import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
+import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.security.oauth2.core.user.OAuth2User;
-import org.springframework.security.oauth2.core.user.OAuth2UserAuthority;
 import org.springframework.stereotype.Service;
 
-import java.util.Collections;
+import java.security.Principal;
 
 @Service
-public class CustomUserDetailsService implements UserDetailsService, OAuth2UserService<OAuth2UserRequest, OAuth2User> {
+public class CustomUserDetailsService implements UserDetailsService {
 
     @Autowired
     private UserRepository userRepository;
@@ -29,42 +25,19 @@ public class CustomUserDetailsService implements UserDetailsService, OAuth2UserS
             throw new UsernameNotFoundException("User not found");
         }
         return org.springframework.security.core.userdetails.User.withUsername(user.getUsername())
-                   .password(user.getPassword())
-                   .roles(user.getRole())
-                   .build();
+                .password(user.getPassword())
+                .roles(user.getRole())
+                .build();
     }
 
-    @Override
-    public OAuth2User loadUser(OAuth2UserRequest userRequest) {
-        DefaultOAuth2UserService delegate = new DefaultOAuth2UserService();
-        OAuth2User oauth2User = delegate.loadUser(userRequest);
-
-        String username = oauth2User.getAttribute("email"); // 또는 다른 식별자
-
-        User user = userRepository.findByUsername(username);
-        if (user == null) {
-            user = new User();
-            user.setUsername(username);
-            user.setRole("USER"); // 기본 역할 설정
-            userRepository.save(user);
-        }
-
-        return new DefaultOAuth2User(
-                Collections.singleton(new OAuth2UserAuthority(oauth2User.getAttributes())),
-                oauth2User.getAttributes(),
-                "email");
-    }
-
-    public User getUserByUsername(String username) {
-        return userRepository.findByUsername(username);
-    }
-
-    public User getUserByPrincipal(Object principal) {
-        if (principal instanceof OAuth2User) {
-            OAuth2User oAuth2User = (OAuth2User) principal;
+    public User getUserByPrincipal(Principal principal) {
+        if (principal instanceof OAuth2AuthenticationToken) {
+            OAuth2User oAuth2User = ((OAuth2AuthenticationToken) principal).getPrincipal();
             String email = oAuth2User.getAttribute("email");
             return userRepository.findByUsername(email);
+        } else {
+            String username = principal.getName();
+            return userRepository.findByUsername(username);
         }
-        return null;
     }
 }

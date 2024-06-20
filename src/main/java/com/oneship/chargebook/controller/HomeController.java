@@ -8,12 +8,20 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.WebDataBinder;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.InitBinder;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.oneship.chargebook.model.ChargeData;
 import com.oneship.chargebook.model.User;
@@ -21,15 +29,17 @@ import com.oneship.chargebook.service.CardDiscountService;
 import com.oneship.chargebook.service.ChargeDataService;
 import com.oneship.chargebook.service.CustomUserDetailsService;
 
-import lombok.RequiredArgsConstructor;
-
 @Controller
-@RequiredArgsConstructor
 public class HomeController {
 
-    private final ChargeDataService chargeDataService;
-    private final CardDiscountService cardDiscountService;
-    private final CustomUserDetailsService userDetailsService;
+    @Autowired
+    private ChargeDataService chargeDataService;
+
+    @Autowired
+    private CardDiscountService cardDiscountService;
+
+    @Autowired
+    private CustomUserDetailsService userDetailsService;
 
     @InitBinder
     public void initBinder(WebDataBinder binder) {
@@ -39,7 +49,7 @@ public class HomeController {
     }
 
     @GetMapping("/")
-    public String index(Model model, @RequestParam(value = "month", required = false) String month, @AuthenticationPrincipal OAuth2User principal) {
+    public String index(Model model, @RequestParam(value = "month", required = false) String month, Principal principal) {
         if (month == null || month.isEmpty()) {
             SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM");
             month = sdf.format(new Date());
@@ -60,7 +70,7 @@ public class HomeController {
     }
 
     @GetMapping("/chart")
-    public String chart(Model model, @RequestParam(value = "month", required = false) String month, @AuthenticationPrincipal OAuth2User principal) {
+    public String chart(Model model, @RequestParam(value = "month", required = false) String month, Principal principal) {
         if (month == null || month.isEmpty()) {
             SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM");
             month = sdf.format(new Date());
@@ -86,15 +96,15 @@ public class HomeController {
     }
 
     @PostMapping("/save")
-    public String save(@ModelAttribute ChargeData chargeData, @AuthenticationPrincipal OAuth2User principal) {
+    public String save(@ModelAttribute ChargeData chargeData, Principal principal) throws Exception {
         User user = userDetailsService.getUserByPrincipal(principal);
-        chargeData.setUser(user); // Ensure the user is set
-        chargeDataService.saveChargeData(chargeData);
+        chargeData.setUser(user);
+        chargeDataService.saveChargeData(chargeData, principal);
         return "redirect:/";
     }
 
     @GetMapping("/edit/{id}")
-    public String edit(@PathVariable Long id, Model model, @AuthenticationPrincipal OAuth2User principal) {
+    public String edit(@PathVariable Long id, Model model, Principal principal) {
         User user = userDetailsService.getUserByPrincipal(principal);
         Optional<ChargeData> chargeDataOptional = chargeDataService.getChargeDataByIdAndUser(id, user);
         if (chargeDataOptional.isPresent()) {
@@ -106,16 +116,16 @@ public class HomeController {
     }
 
     @PostMapping("/update")
-    public String update(@ModelAttribute ChargeData chargeData, @AuthenticationPrincipal OAuth2User principal) {
+    public String update(@ModelAttribute ChargeData chargeData, Principal principal) throws Exception {
         User user = userDetailsService.getUserByPrincipal(principal);
-        chargeData.setUser(user); // Ensure the user is set
-        chargeDataService.updateChargeData(chargeData);
+        chargeData.setUser(user);
+        chargeDataService.updateChargeData(chargeData, principal);
         return "redirect:/";
     }
 
     @DeleteMapping("/delete/{id}")
     @ResponseBody
-    public void delete(@PathVariable Long id, @AuthenticationPrincipal OAuth2User principal) {
+    public void delete(@PathVariable Long id, Principal principal) {
         User user = userDetailsService.getUserByPrincipal(principal);
         chargeDataService.deleteChargeData(id, user);
     }
@@ -136,42 +146,37 @@ public class HomeController {
 
     @GetMapping("/api/accumulatedDistance")
     @ResponseBody
-    public Map<String, Object> getAccumulatedDistance(@AuthenticationPrincipal OAuth2User principal) {
+    public Map<String, Object> getAccumulatedDistance(Principal principal) {
         Map<String, Object> response = new HashMap<>();
         try {
-            long accumulatedDistance = chargeDataService.getLatestAccumulatedDistance();
-            response.put("distance", accumulatedDistance);
+            User user = userDetailsService.getUserByPrincipal(principal);
+            long distance = chargeDataService.getAccumulatedDistance(user);
+            double batteryStatus = chargeDataService.getBatteryStatus(user);
+            double drivingRange = chargeDataService.getDrivingRange(user);
+            response.put("distance", distance);
+            response.put("batteryStatus", batteryStatus);
+            response.put("drivingRange", drivingRange);
         } catch (Exception e) {
-            response.put("error", 1); // Error code to indicate failure
+            response.put("error", 1);
             response.put("message", e.getMessage());
         }
         return response;
     }
 
-    private void ensureNonNullValues(ChargeData chargeData) {
-        if (chargeData.getAmountOfCharge() == null) {
-            chargeData.setAmountOfCharge(0.0);
+    @GetMapping("/user")
+    @ResponseBody
+    public Map<String, Object> getUser(Principal principal) {
+        Map<String, Object> response = new HashMap<>();
+        if (principal instanceof OAuth2AuthenticationToken) {
+            OAuth2AuthenticationToken oAuth2AuthenticationToken = (OAuth2AuthenticationToken) principal;
+            OAuth2User oAuth2User = oAuth2AuthenticationToken.getPrincipal();
+            String email = oAuth2User.getAttribute("email");
+            User user = userDetailsService.getUserByPrincipal(principal);
+            response.put("email", email);
+            response.put("user", user);
+        } else {
+            response.put("error", "Principal is not OAuth2AuthenticationToken");
         }
-        if (chargeData.getPrice() == null) {
-            chargeData.setPrice(0);
-        }
-        if (chargeData.getPoint() == null) {
-            chargeData.setPoint(0);
-        }
-        if (chargeData.getDistance() == null) {
-            chargeData.setDistance(0);
-        }
-        if (chargeData.getDiscountRate() == null) {
-            chargeData.setDiscountRate(0);
-        }
-        if (chargeData.getDiscountedPrice() == null) {
-            chargeData.setDiscountedPrice(0);
-        }
-        if (chargeData.getFinalPrice() == null) {
-            chargeData.setFinalPrice(0);
-        }
-        if (chargeData.getFinalUnitPrice() == null) {
-            chargeData.setFinalUnitPrice(0);
-        }
+        return response;
     }
 }

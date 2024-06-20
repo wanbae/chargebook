@@ -11,14 +11,14 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 
-import com.oneship.chargebook.service.CustomUserDetailsService;
+import com.oneship.chargebook.service.CustomOAuth2UserService;
 
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
 
     @Autowired
-    private CustomUserDetailsService userDetailsService;
+    private CustomOAuth2UserService customOAuth2UserService;
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -42,7 +42,7 @@ public class SecurityConfig {
                 .loginPage("/login")
                 .defaultSuccessUrl("/", true)
                 .userInfoEndpoint()
-                .userService(userDetailsService)
+                .userService(customOAuth2UserService)
                 .and()
                 .and()
             .logout()

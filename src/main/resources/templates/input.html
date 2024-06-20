@@ -9,33 +9,18 @@
       href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css"
       rel="stylesheet"
     />
-    <style>
-      body {
-        padding: 20px;
-      }
-      .title {
-        text-align: center;
-      }
-      .button-container {
-        display: flex;
-        justify-content: center;
-        gap: 10px;
-        margin-top: 20px;
-      }
-      .input-row {
-        display: flex;
-        align-items: center;
-      }
-      .progress {
-        display: none;
-        margin-top: 10px;
-      }
-    </style>
+    <!-- Custom CSS -->
+    <link href="/css/styles.css" rel="stylesheet" />
   </head>
   <body>
     <div class="container">
       <h4 class="title">입력</h4>
-      <form id="inputForm" action="/save" method="post">
+      <form
+        id="inputForm"
+        th:action="@{/save}"
+        th:object="${chargeData}"
+        method="post"
+      >
         <div class="input-field">
           <input
             type="date"
@@ -48,94 +33,9 @@
           <label for="date" class="active">날짜</label>
         </div>
         <div class="input-field">
-          <input
-            type="number"
-            step="0.01"
-            id="amountOfCharge"
-            name="amountOfCharge"
-            autocomplete="off"
-            required
-          />
-          <label for="amountOfCharge" class="active">충전량</label>
-        </div>
-        <div class="input-field">
-          <input
-            type="number"
-            id="price"
-            name="price"
-            autocomplete="off"
-            required
-          />
-          <label for="price" class="active">충전금액</label>
-        </div>
-        <div class="input-field">
-          <input
-            type="number"
-            id="point"
-            name="point"
-            value="0"
-            autocomplete="off"
-          />
-          <label for="point" class="active">포인트 사용</label>
-        </div>
-        <div class="input-row">
-          <div class="input-field" style="flex: 1">
-            <input
-              type="number"
-              id="distance"
-              name="distance"
-              th:value="${accumulatedDistance}"
-              autocomplete="off"
-            />
-            <label for="distance" class="active">누적 주행거리</label>
-          </div>
-          <button
-            type="button"
-            class="btn"
-            onclick="fetchAccumulatedDistance()"
-          >
-            조회
-          </button>
-        </div>
-        <div class="progress">
-          <div class="indeterminate"></div>
-        </div>
-        <div class="row">
-          <div class="input-field col s6">
-            <select
-              id="card"
-              name="card"
-              class="browser-default"
-              autocomplete="off"
-            >
-              <option value="BC" selected>비씨카드</option>
-              <option value="Samsung">삼성카드</option>
-              <option value="Shinhan">신한카드</option>
-              <option value="Hana">하나카드</option>
-            </select>
-            <label for="card" class="active">카드</label>
-          </div>
-          <div class="input-field col s6">
-            <select
-              id="discountRate"
-              name="discountRate"
-              class="browser-default"
-              autocomplete="off"
-            >
-              <option value="100">100%</option>
-              <option value="80">80%</option>
-              <option value="70">70%</option>
-              <option value="50">50%</option>
-              <option value="30">30%</option>
-              <option value="0">0%</option>
-            </select>
-            <label for="discountRate" class="active">할인율</label>
-          </div>
-        </div>
-        <div class="input-field">
           <select
             id="company"
-            name="company"
+            th:field="*{company}"
             class="browser-default"
             autocomplete="off"
           >
@@ -152,6 +52,101 @@
           </select>
           <label for="company" class="active">사업자</label>
         </div>
+        <div class="input-field">
+          <input
+            type="number"
+            step="0.01"
+            id="amountOfCharge"
+            th:field="*{amountOfCharge}"
+            value="0"
+            autocomplete="off"
+            required
+          />
+          <label for="amountOfCharge" class="active">충전량</label>
+        </div>
+        <div class="input-field">
+          <input
+            type="number"
+            id="price"
+            th:field="*{price}"
+            autocomplete="off"
+            required
+          />
+          <label for="price" class="active">충전금액</label>
+        </div>
+        <div class="input-field">
+          <input
+            type="number"
+            id="point"
+            th:field="*{point}"
+            value="0"
+            autocomplete="off"
+          />
+          <label for="point" class="active">포인트 사용</label>
+        </div>
+        <div class="row">
+          <div class="input-field col s6">
+            <select
+              id="card"
+              th:field="*{card}"
+              class="browser-default"
+              autocomplete="off"
+            >
+              <option value="BC" selected>비씨카드</option>
+              <option value="Samsung">삼성카드</option>
+              <option value="Shinhan">신한카드</option>
+              <option value="Hana">하나카드</option>
+            </select>
+            <label for="card" class="active">카드</label>
+          </div>
+          <div class="input-field col s6">
+            <select
+              id="discountRate"
+              th:field="*{discountRate}"
+              class="browser-default"
+              autocomplete="off"
+            >
+              <option value="100">100%</option>
+              <option value="80">80%</option>
+              <option value="70">70%</option>
+              <option value="50">50%</option>
+              <option value="30">30%</option>
+              <option value="0">0%</option>
+            </select>
+            <label for="discountRate" class="active">할인율</label>
+          </div>
+        </div>
+        <div class="status-row">
+          <div class="status-item">
+            <span id="distance">- km</span>
+            <input type="hidden" id="distanceInput" th:field="*{distance}" />
+            <div class="status-label">누적 주행거리</div>
+          </div>
+          <div class="status-item">
+            <span id="batteryStatus">-</span>
+            <input
+              type="hidden"
+              id="batteryStatusInput"
+              th:field="*{batteryStatus}"
+            />
+            <div class="status-label">배터리 잔량</div>
+          </div>
+          <div class="status-item">
+            <span id="drivingRange">- km</span>
+            <input
+              type="hidden"
+              id="drivingRangeInput"
+              th:field="*{drivingRange}"
+            />
+            <div class="status-label">주행 가능 거리</div>
+          </div>
+          <button type="button" class="btn" onclick="fetchCarStatus()">
+            조회
+          </button>
+        </div>
+        <div class="progress">
+          <div class="indeterminate"></div>
+        </div>
         <div class="button-container">
           <button type="submit" class="btn">저장</button>
           <a class="btn red" href="/">취소</a>
@@ -162,19 +157,27 @@
     <!-- Materialize JavaScript -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
     <script>
-      function fetchAccumulatedDistance() {
+      function fetchCarStatus() {
         document.querySelector(".progress").style.display = "block";
         fetch("/api/accumulatedDistance")
           .then((response) => response.json())
           .then((data) => {
             document.querySelector(".progress").style.display = "none";
-            const distanceInput = document.getElementById("distance");
-            distanceInput.value = data.distance;
-            M.updateTextFields(); // Materialize CSS에서 label을 업데이트하는 함수 호출
+            document.getElementById("distance").innerText =
+              data.distance + " km";
+            document.getElementById("distanceInput").value = data.distance;
+            document.getElementById("batteryStatus").innerText =
+              data.batteryStatus + "%";
+            document.getElementById("batteryStatusInput").value =
+              data.batteryStatus;
+            document.getElementById("drivingRange").innerText =
+              data.drivingRange + " km";
+            document.getElementById("drivingRangeInput").value =
+              data.drivingRange;
           })
           .catch((error) => {
             document.querySelector(".progress").style.display = "none";
-            console.error("Error fetching accumulated distance:", error);
+            console.error("Error fetching car status:", error);
           });
       }
 
@@ -189,8 +192,8 @@
           fetchDiscountRate(cardSelect.value);
         }
 
-        // 페이지 로드 시 누적 주행거리 자동 조회
-        fetchAccumulatedDistance();
+        // 페이지 로드 시 차량 상태 자동 조회
+        fetchCarStatus();
 
         function fetchDiscountRate(cardName) {
           fetch(`/api/getDiscountRate?cardName=${cardName}`)

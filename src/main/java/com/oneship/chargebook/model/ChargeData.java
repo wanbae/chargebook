@@ -29,6 +29,12 @@ public class ChargeData {
     private Integer finalPrice = 0;
     private Integer finalUnitPrice = 0;
 
+    @Column(nullable = false)
+    private Double batteryStatus = 0.0;
+
+    @Column(nullable = false)
+    private Double drivingRange = 0.0;
+
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
