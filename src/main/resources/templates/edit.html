@@ -9,6 +9,8 @@
       href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css"
       rel="stylesheet"
     />
+    <!-- Custom CSS -->
+    <link href="/css/styles.css" rel="stylesheet" />
     <style>
       body {
         padding: 20px;
@@ -48,7 +50,12 @@
           삭제
         </button>
       </div>
-      <form id="editForm" action="/update" method="post">
+      <form
+        id="editForm"
+        th:action="@{/update}"
+        th:object="${chargeData}"
+        method="post"
+      >
         <input type="hidden" id="id" name="id" th:value="${chargeData.id}" />
         <div class="input-field">
           <input
@@ -62,12 +69,32 @@
           <label for="date" class="active">날짜</label>
         </div>
         <div class="input-field">
+          <select
+            id="company"
+            th:field="*{company}"
+            class="browser-default"
+            autocomplete="off"
+          >
+            <option value="한화모티브" selected>한화모티브</option>
+            <option value="SK일렉링크">SK일렉링크</option>
+            <option value="EV Infra">EV Infra</option>
+            <option value="chargev">chargev</option>
+            <option value="E-Pit">E-Pit</option>
+            <option value="파워큐브">파워큐브</option>
+            <option value="한전">한전</option>
+            <option value="환경부">환경부</option>
+            <option value="에버온">에버온</option>
+            <option value="기타">기타</option>
+          </select>
+          <label for="company" class="active">사업자</label>
+        </div>
+        <div class="input-field">
           <input
             type="number"
             step="0.01"
             id="amountOfCharge"
-            name="amountOfCharge"
-            th:value="${chargeData.amountOfCharge}"
+            th:field="*{amountOfCharge}"
+            value="0"
             autocomplete="off"
             required
           />
@@ -77,8 +104,7 @@
           <input
             type="number"
             id="price"
-            name="price"
-            th:value="${chargeData.price}"
+            th:field="*{price}"
             autocomplete="off"
             required
           />
@@ -88,159 +114,72 @@
           <input
             type="number"
             id="point"
-            name="point"
-            th:value="${chargeData.point}"
+            th:field="*{point}"
+            value="0"
             autocomplete="off"
           />
           <label for="point" class="active">포인트 사용</label>
-        </div>
-        <div class="input-field">
-          <input
-            type="number"
-            id="distance"
-            name="distance"
-            th:value="${chargeData.distance}"
-            autocomplete="off"
-          />
-          <label for="distance" class="active">누적 주행거리</label>
         </div>
         <div class="row">
           <div class="input-field col s6">
             <select
               id="card"
-              name="card"
+              th:field="*{card}"
               class="browser-default"
               autocomplete="off"
-              th:value="${chargeData.card}"
             >
-              <option
-                value="BC"
-                th:selected="${chargeData.card == 'BC'}"
-                th:text="'비씨카드'"
-              >
-                BC
-              </option>
-              <option
-                value="Samsung"
-                th:selected="${chargeData.card == 'Samsung'}"
-                th:text="'삼성카드'"
-              >
-                Samsung
-              </option>
-              <option
-                value="Shinhan"
-                th:selected="${chargeData.card == 'Shinhan'}"
-                th:text="'신한카드'"
-              >
-                Shinhan
-              </option>
-              <option
-                value="Hana"
-                th:selected="${chargeData.card == 'Hana'}"
-                th:text="'하나카드'"
-              >
-                Hana
-              </option>
+              <option value="BC" selected>비씨카드</option>
+              <option value="Samsung">삼성카드</option>
+              <option value="Shinhan">신한카드</option>
+              <option value="Hana">하나카드</option>
             </select>
             <label for="card" class="active">카드</label>
           </div>
           <div class="input-field col s6">
             <select
               id="discountRate"
-              name="discountRate"
+              th:field="*{discountRate}"
               class="browser-default"
               autocomplete="off"
-              th:value="${chargeData.discountRate}"
             >
-              <option
-                value="100"
-                th:selected="${chargeData.discountRate == 100}"
-              >
-                100%
-              </option>
-              <option value="80" th:selected="${chargeData.discountRate == 80}">
-                80%
-              </option>
-              <option value="70" th:selected="${chargeData.discountRate == 70}">
-                70%
-              </option>
-              <option value="50" th:selected="${chargeData.discountRate == 50}">
-                50%
-              </option>
-              <option value="30" th:selected="${chargeData.discountRate == 30}">
-                30%
-              </option>
-              <option value="0" th:selected="${chargeData.discountRate == 0}">
-                0%
-              </option>
+              <option value="100">100%</option>
+              <option value="80">80%</option>
+              <option value="70">70%</option>
+              <option value="50">50%</option>
+              <option value="30">30%</option>
+              <option value="0">0%</option>
             </select>
             <label for="discountRate" class="active">할인율</label>
           </div>
         </div>
         <div class="input-field">
-          <select
-            id="company"
-            name="company"
-            class="browser-default"
+          <input
+            type="number"
+            id="distance"
+            th:field="*{distance}"
             autocomplete="off"
-            th:value="${chargeData.company}"
-          >
-            <option
-              value="한화모티브"
-              th:selected="${chargeData.company == '한화모티브'}"
-            >
-              한화모티브
-            </option>
-            <option
-              value="SK일렉링크"
-              th:selected="${chargeData.company == 'SK일렉링크'}"
-            >
-              SK일렉링크
-            </option>
-            <option
-              value="EV Infra"
-              th:selected="${chargeData.company == 'EV Infra'}"
-            >
-              EV Infra
-            </option>
-            <option
-              value="chargev"
-              th:selected="${chargeData.company == 'chargev'}"
-            >
-              chargev
-            </option>
-            <option
-              value="E-Pit"
-              th:selected="${chargeData.company == 'E-Pit'}"
-            >
-              E-Pit
-            </option>
-            <option
-              value="파워큐브"
-              th:selected="${chargeData.company == '파워큐브'}"
-            >
-              파워큐브
-            </option>
-            <option value="한전" th:selected="${chargeData.company == '한전'}">
-              한전
-            </option>
-            <option
-              value="환경부"
-              th:selected="${chargeData.company == '환경부'}"
-            >
-              환경부
-            </option>
-            <option
-              value="에버온"
-              th:selected="${chargeData.company == '에버온'}"
-            >
-              에버온
-            </option>
-            <option value="기타" th:selected="${chargeData.company == '기타'}">
-              기타
-            </option>
-          </select>
-          <label for="company" class="active">사업자</label>
+          />
+          <label for="distance" class="active">누적 주행거리</label>
+        </div>
+        <div class="input-field">
+          <input
+            type="number"
+            id="batteryStatus"
+            th:field="*{batteryStatus}"
+            autocomplete="off"
+            required
+          />
+          <label for="batteryStatus" class="active">배터리 잔량</label>
+        </div>
+        <div class="input-field">
+          <input
+            type="number"
+            id="drivingRange"
+            th:field="*{drivingRange}"
+            autocomplete="off"
+            required
+          />
+          <label for="drivingRange" class="active">주행 가능 거리</label>
         </div>
         <div class="button-container">
           <button type="submit" class="btn">저장</button>
