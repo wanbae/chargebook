@@ -5,6 +5,8 @@ import com.oneship.chargebook.model.User;
 import com.oneship.chargebook.repository.ChargeDataRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.security.Principal;
 import java.util.HashMap;
@@ -14,6 +16,8 @@ import java.util.Optional;
 
 @Service
 public class ChargeDataService {
+
+    private static final Logger logger = LoggerFactory.getLogger(ChargeDataService.class);
 
     @Autowired
     private ChargeDataRepository chargeDataRepository;
@@ -59,16 +63,31 @@ public class ChargeDataService {
         chargeData.ifPresent(chargeDataRepository::delete);
     }
 
-    public long getAccumulatedDistance(User user) throws Exception {
-        return kiaService.getOdometer();
+    public long getAccumulatedDistance(User user) {
+        try {
+            return kiaService.getOdometer(user.getId().toString());
+        } catch (Exception e) {
+            logger.error("Error getting accumulated distance", e);
+            return 0;
+        }
     }
 
-    public Double getBatteryStatus(User user) throws Exception {
-        return kiaService.getBatteryStatus();
+    public Double getBatteryStatus(User user) {
+        try {
+            return kiaService.getBatteryStatus(user.getId().toString());
+        } catch (Exception e) {
+            logger.error("Error getting battery status", e);
+            return 0.0;
+        }
     }
 
-    public Double getDrivingRange(User user) throws Exception {
-        return kiaService.getDte();
+    public Double getDrivingRange(User user) {
+        try {
+            return kiaService.getDte(user.getId().toString());
+        } catch (Exception e) {
+            logger.error("Error getting driving range", e);
+            return 0.0;
+        }
     }
 
     public Map<String, Integer> getTotalPriceByCard(String month, User user) {

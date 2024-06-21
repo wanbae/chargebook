@@ -2,12 +2,11 @@ package com.oneship.chargebook.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.oneship.chargebook.config.KiaProperties;
-
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-
-
+import com.oneship.chargebook.config.KiaProperties;
+import com.oneship.chargebook.model.KiaToken;
+import com.oneship.chargebook.repository.KiaTokenRepository;
 import org.apache.commons.codec.binary.Base64;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,8 +22,7 @@ import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-
-import com.oneship.chargebook.model.KiaToken;
+import java.util.Optional;
 
 @Service
 public class KiaService {
@@ -33,161 +31,119 @@ public class KiaService {
     @Autowired
     private KiaProperties kiaProperties;
 
-    private KiaToken kiaToken;
+    @Autowired
+    private KiaTokenRepository kiaTokenRepository;
 
-    public String getDteJson(boolean prettyPrinting) throws Exception {
-        String accessToken = getAccessToken();
-        if (accessToken.isEmpty()) {
-            return "";
+    public KiaToken requestKiaToken(String userId, String authorizationCode) {
+        String requestBody = "grant_type=authorization_code&code=" + authorizationCode + "&redirect_uri=" + kiaProperties.getRedirectUri();
+        String tokenResponse = tokenAPICall(requestBody);
+        ObjectMapper objectMapper = new ObjectMapper();
+        try {
+            JsonNode tokenRoot = objectMapper.readTree(tokenResponse);
+            String accessToken = tokenRoot.path("access_token").asText();
+            String refreshToken = tokenRoot.path("refresh_token").asText();
+            String tokenType = tokenRoot.path("token_type").asText();
+            int expiresIn = tokenRoot.path("expires_in").asInt();
+            KiaToken kiaToken = new KiaToken(userId, accessToken, refreshToken, tokenType, expiresIn, LocalDateTime.now().plusSeconds(expiresIn));
+            saveTokenForUser(kiaToken);
+            return kiaToken;
+        } catch (Exception e) {
+            logger.error("Error parsing token response", e);
+            return null;
         }
-        String apiURL = kiaProperties.getApi().getBaseUrl() + "/car/status/" + kiaProperties.getCarId() + "/dte";
-        String result = executeApiCall(apiURL, accessToken);
-
-        if (prettyPrinting && result != null) {
-            result = toJson(fromJson(result, Map.class));
-        }
-
-        logger.info("주행 가능 거리: {}", result);
-        return result;
     }
 
-    public Double getDte() throws Exception {
-        String accessToken = getAccessToken();
-        if (accessToken.isEmpty()) {
-            return 0D;
-        }
-        String result = getDteJson(false);
-        Map<String, Object> map = fromJson(result, Map.class);
-        return ((Number) map.get("value")).doubleValue();
+    public void saveTokenForUser(KiaToken kiaToken) {
+        kiaToken.setExpirationTime(LocalDateTime.now().plusSeconds(kiaToken.getExpiresIn()));
+        kiaTokenRepository.save(kiaToken);
     }
 
-    public long getOdometer() throws Exception {
-        String accessToken = getAccessToken();
+    public String getAccessToken(String userId) throws Exception {
+        Optional<KiaToken> kiaTokenOptional = kiaTokenRepository.findById(userId);
+        if (kiaTokenOptional.isPresent()) {
+            KiaToken kiaToken = kiaTokenOptional.get();
+            if (kiaToken.isTokenExpired()) {
+                kiaToken = refreshKiaToken(userId);
+            }
+            return kiaToken.getAccessToken();
+        } else {
+            throw new Exception("No token found for user: " + userId);
+        }
+    }
+
+    public long getOdometer(String userId) throws Exception {
+        String accessToken = getAccessToken(userId);
         if (accessToken.isEmpty()) {
             return 0;
         }
-        String odometer = getOdometerJson(false);
-        Map<String, Object> map = fromJson(odometer, Map.class);
-        Object odometers = map.get("odometers");
-        if (odometers != null && odometers instanceof List) {
-            List odo = (List) odometers;
-            Map odoMap = (Map) odo.get(0);
-            Object value = odoMap.get("value");
-            if (value != null) {
-                float v = Float.parseFloat("" + value);
-                return (long) v;
-            }
-        }
-        return 0;
-    }
-
-    public String getOdometerJson(boolean prettyPrinting) throws Exception {
-        String accessToken = getAccessToken();
-        if (accessToken.isEmpty()) {
-            return "";
-        }
         String apiURL = kiaProperties.getApi().getBaseUrl() + "/car/status/" + kiaProperties.getCarId() + "/odometer";
         String result = executeApiCall(apiURL, accessToken);
-        if (prettyPrinting && result != null) {
-            result = toJson(fromJson(result, Map.class));
-        }
-        logger.info("누적 운행 거리: {}", result);
-        return result;
+        ObjectMapper objectMapper = new ObjectMapper();
+        JsonNode rootNode = objectMapper.readTree(result);
+        return rootNode.path("odometers").get(0).path("value").asLong();
     }
 
-    public String getChargingJson(boolean prettyPrinting) throws Exception {
-        String accessToken = getAccessToken();
+    public double getBatteryStatus(String userId) throws Exception {
+        String accessToken = getAccessToken(userId);
         if (accessToken.isEmpty()) {
-            return "";
-        }
-        String apiURL = kiaProperties.getApi().getBaseUrl() + "/car/status/" + kiaProperties.getCarId() + "/ev/charging";
-        String result = executeApiCall(apiURL, accessToken);
-        if (prettyPrinting && result != null) {
-            result = toJson(fromJson(result, Map.class));
-        }
-        logger.info("충전 상태: {}", result);
-        return result;
-    }
-
-    public boolean getCarlist() throws Exception {
-        String accessToken = getAccessToken();
-        if (accessToken.isEmpty()) {
-            return false;
-        }
-        String apiURL = kiaProperties.getApi().getBaseUrl() + "/car/profile/carlist";
-        String result = executeApiCall(apiURL, accessToken);
-        logger.info("차량 리스트: {}", result);
-        return result.contains("carId");
-    }
-
-    public Map getCharging() throws Exception {
-        String accessToken = getAccessToken();
-        if (accessToken.isEmpty()) {
-            return Collections.emptyMap();
-        }
-        String result = getChargingJson(false);
-        return fromJson(result, Map.class);
-    }
-
-    public String getBatteryStatusJson(boolean prettyPrinting) throws Exception {
-        String accessToken = getAccessToken();
-        if (accessToken.isEmpty()) {
-            return "";
+            return 0.0;
         }
         String apiURL = kiaProperties.getApi().getBaseUrl() + "/car/status/" + kiaProperties.getCarId() + "/ev/battery";
         String result = executeApiCall(apiURL, accessToken);
-        if (prettyPrinting && result != null) {
-            result = toJson(fromJson(result, Map.class));
+        ObjectMapper objectMapper = new ObjectMapper();
+        JsonNode rootNode = objectMapper.readTree(result);
+        return rootNode.path("soc").asDouble();
+    }
+
+    public double getDte(String userId) throws Exception {
+        String accessToken = getAccessToken(userId);
+        if (accessToken.isEmpty()) {
+            return 0.0;
         }
-        logger.info("전기차 배터리 잔량: {}", result);
-        return result;
+        String apiURL = kiaProperties.getApi().getBaseUrl() + "/car/status/" + kiaProperties.getCarId() + "/dte";
+        String result = executeApiCall(apiURL, accessToken);
+        ObjectMapper objectMapper = new ObjectMapper();
+        JsonNode rootNode = objectMapper.readTree(result);
+        return rootNode.path("value").asDouble();
     }
 
-    public Double getBatteryStatus() throws Exception {
-        String result = getBatteryStatusJson(false);
-        Map<String, Object> map = fromJson(result, Map.class);
-        return ((Number) map.get("soc")).doubleValue();
-    }
-
-    protected String executeApiCall(String apiURL, String accessToken) {
-        StringBuilder sb = new StringBuilder();
-        String responseData;
-
-        String token = "Bearer " + accessToken;
-        String contentType = "application/json";
-
-        try {
-            URL url = new URL(apiURL);
-            HttpURLConnection con = (HttpURLConnection) url.openConnection();
-            con.setRequestMethod("GET");
-            con.setRequestProperty("Authorization", token);
-            con.setRequestProperty("Content-Type", contentType);
-            int responseCode = con.getResponseCode();
-            BufferedReader br;
-            if (responseCode == HttpURLConnection.HTTP_OK) {
-                br = new BufferedReader(new InputStreamReader(con.getInputStream()));
-            } else {
-                br = new BufferedReader(new InputStreamReader(con.getErrorStream()));
-            }
-            while ((responseData = br.readLine()) != null) {
-                sb.append(responseData);
-            }
-            br.close();
-        } catch (Exception e) {
-            logger.error("Error during API call", e);
+    public String getDteJson(String userId, boolean forceUpdate) throws Exception {
+        String accessToken = getAccessToken(userId);
+        if (accessToken.isEmpty()) {
+            return "{}";
         }
-        return sb.toString();
+        String apiURL = kiaProperties.getApi().getBaseUrl() + "/car/status/" + kiaProperties.getCarId() + "/dte";
+        return executeApiCall(apiURL, accessToken);
     }
 
-    protected String getAccessToken() throws Exception {
-        if (kiaToken == null || kiaToken.isTokenExpired()) {
-            refreshKiaToken();
+    public Map<String, Object> getCharging(String userId) throws Exception {
+        String accessToken = getAccessToken(userId);
+        if (accessToken.isEmpty()) {
+            return Collections.emptyMap();
         }
-        return kiaToken.getAccessToken();
+        String apiURL = kiaProperties.getApi().getBaseUrl() + "/car/status/" + kiaProperties.getCarId() + "/charging";
+        String result = executeApiCall(apiURL, accessToken);
+        ObjectMapper objectMapper = new ObjectMapper();
+        return objectMapper.readValue(result, Map.class);
     }
 
-    protected void refreshKiaToken() throws Exception {
-        String refreshToken = kiaProperties.getRefreshToken();
+    public boolean getCarlist(String userId) throws Exception {
+        String accessToken = getAccessToken(userId);
+        if (accessToken.isEmpty()) {
+            return false;
+        }
+        String apiURL = kiaProperties.getApi().getBaseUrl() + "/car/list";
+        String result = executeApiCall(apiURL, accessToken);
+        ObjectMapper objectMapper = new ObjectMapper();
+        JsonNode rootNode = objectMapper.readTree(result);
+        return rootNode.has("carId");
+    }
+
+    protected KiaToken refreshKiaToken(String userId) throws Exception {
+        KiaToken currentToken = kiaTokenRepository.findById(userId)
+                .orElseThrow(() -> new Exception("No token found for user: " + userId));
+
+        String refreshToken = currentToken.getRefreshToken();
         String requestBody = "grant_type=refresh_token&refresh_token=" + refreshToken + "&redirect_uri=" + kiaProperties.getRedirectUri();
         String tokenResponse = tokenAPICall(requestBody);
         ObjectMapper objectMapper = new ObjectMapper();
@@ -198,12 +154,15 @@ public class KiaService {
         String tokenType = tokenRoot.path("token_type").asText();
         int expiresIn = tokenRoot.path("expires_in").asInt();
 
-        kiaToken = new KiaToken(accessToken, newRefreshToken, tokenType, expiresIn);
+        KiaToken kiaToken = new KiaToken(userId, accessToken, newRefreshToken, tokenType, expiresIn);
         kiaToken.setExpirationTime(LocalDateTime.now().plusSeconds(expiresIn));
+        kiaTokenRepository.save(kiaToken);
         logger.info("New accessToken = {}", accessToken);
+        return kiaToken;
     }
 
-    public void deleteKiaToken() throws Exception {
+    public void deleteKiaToken(String userId) throws Exception {
+        KiaToken kiaToken = kiaTokenRepository.findById(userId).orElse(null);
         if (kiaToken == null || kiaToken.getAccessToken() == null) {
             return;
         }
@@ -211,8 +170,7 @@ public class KiaService {
         String requestBody = "grant_type=delete&access_token=" + kiaToken.getAccessToken();
         tokenAPICall(requestBody);
 
-        // 토큰 정보 삭제
-        kiaToken = null;
+        kiaTokenRepository.deleteById(userId);
     }
 
     protected String tokenAPICall(String requestBody) {
@@ -253,6 +211,36 @@ public class KiaService {
             logger.info("responseData = {}", sb.toString());
         } catch (Exception e) {
             logger.error("Error during token API call", e);
+        }
+        return sb.toString();
+    }
+
+    protected String executeApiCall(String apiUrl, String accessToken) {
+        StringBuilder sb = new StringBuilder();
+        String responseData;
+
+        try {
+            URL url = new URL(apiUrl);
+            HttpURLConnection con = (HttpURLConnection) url.openConnection();
+            con.setRequestMethod("GET");
+            con.setRequestProperty("Authorization", "Bearer " + accessToken);
+            con.setRequestProperty("Content-Type", "application/json");
+            con.setDoOutput(true);
+            int responseCode = con.getResponseCode();
+            BufferedReader br;
+            if (responseCode == HttpURLConnection.HTTP_OK) {
+                br = new BufferedReader(new InputStreamReader(con.getInputStream()));
+            } else {
+                br = new BufferedReader(new InputStreamReader(con.getErrorStream()));
+            }
+            while ((responseData = br.readLine()) != null) {
+                sb.append(responseData);
+            }
+            br.close();
+            logger.info("responseCode = {}", responseCode);
+            logger.info("responseData = {}", sb.toString());
+        } catch (Exception e) {
+            logger.error("Error during API call", e);
         }
         return sb.toString();
     }

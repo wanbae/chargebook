@@ -36,7 +36,7 @@ class KiaServiceIntegrationTest {
 
     @Test
     void testGetCarlist() throws Exception {
-        boolean result = kiaService.getCarlist();
+        boolean result = kiaService.getCarlist("userId");
         assertTrue(result, "Carlist should contain carId");
 
         // Test case for no carId in the result (you can modify the API response to test this case)
@@ -44,34 +44,34 @@ class KiaServiceIntegrationTest {
 
     @Test
     void testGetDteJson() throws Exception {
-        String result = kiaService.getDteJson(false);
+        String result = kiaService.getDteJson("userId", false);
         assertNotNull(result);
         assertTrue(result.contains("value"), "DTE JSON should contain 'value'");
     }
 
     @Test
     void testGetDte() throws Exception {
-        Double result = kiaService.getDte();
+        Double result = kiaService.getDte("userId");
         assertNotNull(result);
         assertTrue(result > 0, "DTE should be greater than 0");
     }
 
     @Test
     void testGetOdometer() throws Exception {
-        long result = kiaService.getOdometer();
+        long result = kiaService.getOdometer("userId");
         assertTrue(result > 0, "Odometer should be greater than 0");
     }
 
     @Test
     void testGetCharging() throws Exception {
-        Map result = kiaService.getCharging();
+        Map result = kiaService.getCharging("userId");
         assertNotNull(result);
         assertTrue(result.containsKey("soc"), "Charging JSON should contain 'soc'");
     }
 
     @Test
     void testGetBatteryStatus() throws Exception {
-        Object result = kiaService.getBatteryStatus();
+        Object result = kiaService.getBatteryStatus("userId");
         assertNotNull(result);
         assertTrue(result instanceof Number, "Battery status should be a number");
         Number soc = (Number) result;

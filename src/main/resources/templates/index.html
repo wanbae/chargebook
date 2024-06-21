@@ -34,6 +34,8 @@
           </form>
           <ul id="userDropdown" class="dropdown-content">
             <li><a href="#">Profile</a></li>
+            <li><a href="/kia/sso">Kia 연동</a></li>
+            <!-- Kia 연동 메뉴 추가 -->
             <li class="divider" tabindex="-1"></li>
             <li><a href="/logout">Logout</a></li>
           </ul>
@@ -47,6 +49,7 @@
           </a>
         </div>
       </div>
+      <!-- 기존 테이블 및 기타 콘텐츠 -->
       <div class="summary-tables">
         <div class="summary-table">
           <h5>카드별 청구금액 총합</h5>
@@ -90,7 +93,6 @@
       </div>
       <div class="table-responsive">
         <table class="striped responsive-table">
-          <!-- 테이블 헤더 수정 -->
           <thead>
             <tr>
               <th>날짜</th>
@@ -102,16 +104,12 @@
               <th class="hide-on-small-only">청구금액</th>
               <th class="hide-on-small-only">청구단가</th>
               <th class="hide-on-small-only">배터리 잔량</th>
-              <!-- 추가 -->
               <th class="hide-on-small-only">주행 가능 거리</th>
-              <!-- 추가 -->
               <th class="hide-on-small-only">누적주행거리</th>
               <th>카드</th>
               <th>사업자</th>
             </tr>
           </thead>
-
-          <!-- 테이블 바디 수정 -->
           <tbody>
             <tr
               th:each="data : ${chargeDataList}"
@@ -144,12 +142,10 @@
                 th:text="${data.batteryStatus}"
                 class="hide-on-small-only"
               ></td>
-              <!-- 추가 -->
               <td
                 th:text="${data.drivingRange}"
                 class="hide-on-small-only"
               ></td>
-              <!-- 추가 -->
               <td th:text="${data.distance}" class="hide-on-small-only"></td>
               <td
                 th:text="${data.card == 'BC' ? '비씨카드' : data.card == 'Samsung' ? '삼성카드' : data.card == 'Shinhan' ? '신한카드' : data.card == 'Hana' ? '하나카드' : data.card}"

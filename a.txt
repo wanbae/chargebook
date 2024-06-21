@@ -1,0 +1,2969 @@
+==== 파일명 :  ./build/resources/main/templates/index.html =====
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>EV 충전</title>
+    <link rel="icon" href="/favicon.ico" type="image/x-icon" />
+    <!-- Materialize CSS -->
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css"
+      rel="stylesheet"
+    />
+    <!-- Custom Styles -->
+    <link href="/css/styles.css" rel="stylesheet" />
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <h1>EV 충전</h1>
+        <div class="header-right">
+          <form
+            id="monthForm"
+            action="/"
+            method="get"
+            class="input-field month-selector"
+          >
+            <input
+              type="month"
+              id="month"
+              name="month"
+              th:value="${selectedMonth}"
+              onchange="document.getElementById('monthForm').submit();"
+            />
+          </form>
+          <ul id="userDropdown" class="dropdown-content">
+            <li><a href="#">Profile</a></li>
+            <li><a href="/kia/sso">Kia 연동</a></li>
+            <!-- Kia 연동 메뉴 추가 -->
+            <li class="divider" tabindex="-1"></li>
+            <li><a href="/logout">Logout</a></li>
+          </ul>
+          <a class="btn dropdown-trigger" href="#" data-target="userDropdown">
+            <img
+              src="https://via.placeholder.com/30"
+              class="circle"
+              alt="User Avatar"
+            />
+            <span th:text="${#authentication.name}"></span>
+          </a>
+        </div>
+      </div>
+      <!-- 기존 테이블 및 기타 콘텐츠 -->
+      <div class="summary-tables">
+        <div class="summary-table">
+          <h5>카드별 청구금액 총합</h5>
+          <table class="striped responsive-table">
+            <thead>
+              <tr>
+                <th>카드</th>
+                <th>총 청구금액</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr th:each="cardSummary : ${totalPriceByCard.entrySet()}">
+                <td
+                  th:text="${cardSummary.key == 'BC' ? '비씨카드' : cardSummary.key == 'Samsung' ? '삼성카드' : cardSummary.key == 'Shinhan' ? '신한카드' : cardSummary.key == 'Hana' ? '하나카드' : cardSummary.key}"
+                ></td>
+                <td th:text="${cardSummary.value}"></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="summary-table">
+          <h5>사업자별 충전량 총합</h5>
+          <table class="striped responsive-table">
+            <thead>
+              <tr>
+                <th>사업자</th>
+                <th>총 충전량</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr th:each="companySummary : ${totalChargeByCompany.entrySet()}">
+                <td th:text="${companySummary.key}"></td>
+                <td th:text="${companySummary.value}"></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div th:if="${#lists.isEmpty(chargeDataList)}">
+        <p>충전기록이 없습니다</p>
+      </div>
+      <div class="table-responsive">
+        <table class="striped responsive-table">
+          <thead>
+            <tr>
+              <th>날짜</th>
+              <th class="hide-on-small-only">충전량</th>
+              <th>충전금액</th>
+              <th class="hide-on-small-only">단가</th>
+              <th class="hide-on-small-only">포인트 사용</th>
+              <th class="hide-on-small-only">할인후 금액</th>
+              <th class="hide-on-small-only">청구금액</th>
+              <th class="hide-on-small-only">청구단가</th>
+              <th class="hide-on-small-only">배터리 잔량</th>
+              <th class="hide-on-small-only">주행 가능 거리</th>
+              <th class="hide-on-small-only">누적주행거리</th>
+              <th>카드</th>
+              <th>사업자</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr
+              th:each="data : ${chargeDataList}"
+              th:onclick="|window.location='/edit/${data.id}'|"
+              class="clickable-row"
+            >
+              <td
+                class="date-col"
+                th:data-full="${#dates.format(data.date, 'yyyy.MM.dd')}"
+                th:data-short="${#dates.format(data.date, 'MM.dd')}"
+                th:text="${#dates.format(data.date, 'yyyy.MM.dd')}"
+              ></td>
+              <td
+                th:text="${data.amountOfCharge}"
+                class="hide-on-small-only"
+              ></td>
+              <td th:text="${data.price}"></td>
+              <td th:text="${data.unitPrice}" class="hide-on-small-only"></td>
+              <td th:text="${data.point}" class="hide-on-small-only"></td>
+              <td
+                th:text="${data.discountedPrice}"
+                class="hide-on-small-only"
+              ></td>
+              <td th:text="${data.finalPrice}" class="hide-on-small-only"></td>
+              <td
+                th:text="${data.finalUnitPrice}"
+                class="hide-on-small-only"
+              ></td>
+              <td
+                th:text="${data.batteryStatus}"
+                class="hide-on-small-only"
+              ></td>
+              <td
+                th:text="${data.drivingRange}"
+                class="hide-on-small-only"
+              ></td>
+              <td th:text="${data.distance}" class="hide-on-small-only"></td>
+              <td
+                th:text="${data.card == 'BC' ? '비씨카드' : data.card == 'Samsung' ? '삼성카드' : data.card == 'Shinhan' ? '신한카드' : data.card == 'Hana' ? '하나카드' : data.card}"
+              ></td>
+              <td th:text="${data.company}"></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="button-container">
+        <a class="btn left" href="/chart">차트 보기</a>
+        <a class="btn right" href="/input">입력</a>
+      </div>
+    </div>
+
+    <!-- Materialize JavaScript -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        var elems = document.querySelectorAll(".dropdown-trigger");
+        var instances = M.Dropdown.init(elems);
+
+        var dateCols = document.querySelectorAll(".date-col");
+        if (window.innerWidth <= 600) {
+          dateCols.forEach(function (col) {
+            col.textContent = col.getAttribute("data-short");
+          });
+        } else {
+          dateCols.forEach(function (col) {
+            col.textContent = col.getAttribute("data-full");
+          });
+        }
+      });
+
+      window.addEventListener("resize", function () {
+        var dateCols = document.querySelectorAll(".date-col");
+        if (window.innerWidth <= 600) {
+          dateCols.forEach(function (col) {
+            col.textContent = col.getAttribute("data-short");
+          });
+        } else {
+          dateCols.forEach(function (col) {
+            col.textContent = col.getAttribute("data-full");
+          });
+        }
+      });
+    </script>
+  </body>
+</html>
+==== 파일명 :  ./build/resources/main/templates/popup.html =====
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Popup Page</title>
+    <!-- Materialize CSS -->
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <div class="modal-content">
+      <h4>Popup Content</h4>
+      <p>This is the popup content.</p>
+      <button
+        class="btn"
+        onclick="document.getElementById('modal').style.display='none'"
+      >
+        Close
+      </button>
+    </div>
+    <!-- Materialize JavaScript -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+  </body>
+</html>
+==== 파일명 :  ./build/resources/main/templates/register.html =====
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Register</title>
+    <link
+      rel="stylesheet"
+      href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
+    />
+  </head>
+  <body>
+    <div class="container mt-5">
+      <h2>Register</h2>
+      <form action="/register" method="post" th:object="${user}">
+        <div class="form-group">
+          <label for="username">Username:</label>
+          <input
+            type="text"
+            class="form-control"
+            id="username"
+            th:field="*{username}"
+          />
+        </div>
+        <div class="form-group">
+          <label for="password">Password:</label>
+          <input
+            type="password"
+            class="form-control"
+            id="password"
+            th:field="*{password}"
+          />
+        </div>
+        <button type="submit" class="btn btn-primary">Register</button>
+      </form>
+    </div>
+  </body>
+</html>
+==== 파일명 :  ./build/resources/main/templates/edit_popup.html =====
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>데이터 수정</title>
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css"
+      rel="stylesheet"
+    />
+    <style>
+      .modal-content {
+        max-height: 90vh;
+        overflow-y: auto;
+      }
+    </style>
+    <script src="/htmx.min.js"></script>
+  </head>
+  <body>
+    <form action="/update" method="post">
+      <div class="modal-content">
+        <h4>수정 내용</h4>
+        <input type="hidden" name="id" th:value="${chargeData.id}" />
+        <input type="hidden" name="month" th:value="${selectedMonth}" />
+
+        <div class="input-field">
+          <label for="date">날짜:</label>
+          <input
+            type="date"
+            id="date"
+            name="date"
+            th:value="${#dates.format(chargeData.date, 'yyyy-MM-dd')}"
+          />
+        </div>
+        <div class="input-field">
+          <label for="amountOfCharge">충전량:</label>
+          <input
+            type="number"
+            id="amountOfCharge"
+            name="amountOfCharge"
+            th:value="${chargeData.amountOfCharge}"
+          />
+        </div>
+        <div class="input-field">
+          <label for="price">충전금액:</label>
+          <input
+            type="number"
+            id="price"
+            name="price"
+            th:value="${chargeData.price}"
+          />
+        </div>
+        <div class="input-field">
+          <label for="unitPrice">단가:</label>
+          <input
+            type="number"
+            id="unitPrice"
+            name="unitPrice"
+            th:value="${chargeData.unitPrice}"
+          />
+        </div>
+        <div class="input-field">
+          <label for="point">포인트 사용:</label>
+          <input
+            type="number"
+            id="point"
+            name="point"
+            th:value="${chargeData.point}"
+          />
+        </div>
+        <div>
+          <label>할인율:</label><br />
+          <label>
+            <input
+              type="radio"
+              id="discount100"
+              name="discountRate"
+              value="100"
+              th:checked="${chargeData.discountRate == 100}"
+            />
+            <span>100%</span> </label
+          ><br />
+          <label>
+            <input
+              type="radio"
+              id="discount80"
+              name="discountRate"
+              value="80"
+              th:checked="${chargeData.discountRate == 80}"
+            />
+            <span>80%</span> </label
+          ><br />
+          <label>
+            <input
+              type="radio"
+              id="discount70"
+              name="discountRate"
+              value="70"
+              th:checked="${chargeData.discountRate == 70}"
+            />
+            <span>70%</span> </label
+          ><br />
+          <label>
+            <input
+              type="radio"
+              id="discount50"
+              name="discountRate"
+              value="50"
+              th:checked="${chargeData.discountRate == 50}"
+            />
+            <span>50%</span> </label
+          ><br />
+          <label>
+            <input
+              type="radio"
+              id="discount30"
+              name="discountRate"
+              value="30"
+              th:checked="${chargeData.discountRate == 30}"
+            />
+            <span>30%</span> </label
+          ><br />
+          <label>
+            <input
+              type="radio"
+              id="discount0"
+              name="discountRate"
+              value="0"
+              th:checked="${chargeData.discountRate == 0}"
+            />
+            <span>0%</span> </label
+          ><br />
+        </div>
+        <div class="input-field">
+          <label for="distance">누적 주행거리:</label>
+          <input
+            type="number"
+            id="distance"
+            name="distance"
+            th:value="${chargeData.distance}"
+          />
+        </div>
+        <div>
+          <label>카드:</label><br />
+          <label>
+            <input
+              type="radio"
+              id="bc"
+              name="card"
+              value="BC"
+              th:checked="${chargeData.card == 'BC'}"
+            />
+            <span>BC</span> </label
+          ><br />
+          <label>
+            <input
+              type="radio"
+              id="samsung"
+              name="card"
+              value="삼성"
+              th:checked="${chargeData.card == '삼성'}"
+            />
+            <span>삼성</span> </label
+          ><br />
+          <label>
+            <input
+              type="radio"
+              id="shinhan"
+              name="card"
+              value="신한"
+              th:checked="${chargeData.card == '신한'}"
+            />
+            <span>신한</span> </label
+          ><br />
+          <label>
+            <input
+              type="radio"
+              id="hana"
+              name="card"
+              value="하나"
+              th:checked="${chargeData.card == '하나'}"
+            />
+            <span>하나</span> </label
+          ><br />
+        </div>
+        <div>
+          <label>사업자:</label><br />
+          <label>
+            <input
+              type="radio"
+              id="hanhwa"
+              name="company"
+              value="한화모티브"
+              onclick="updateChargeData('한화모티브')"
+              th:checked="${chargeData.company == '한화모티브'}"
+            />
+            <span>한화모티브</span> </label
+          ><br />
+          <label>
+            <input
+              type="radio"
+              id="sk"
+              name="company"
+              value="SK일렉링크"
+              onclick="updateChargeData('SK일렉링크')"
+              th:checked="${chargeData.company == 'SK일렉링크'}"
+            />
+            <span>SK일렉링크</span> </label
+          ><br />
+          <label>
+            <input
+              type="radio"
+              id="evinfra"
+              name="company"
+              value="EV Infra"
+              onclick="updateChargeData('EV Infra')"
+              th:checked="${chargeData.company == 'EV Infra'}"
+            />
+            <span>EV Infra</span> </label
+          ><br />
+          <label>
+            <input
+              type="radio"
+              id="chargev"
+              name="company"
+              value="chargev"
+              onclick="updateChargeData('chargev')"
+              th:checked="${chargeData.company == 'chargev'}"
+            />
+            <span>chargev</span> </label
+          ><br />
+          <label>
+            <input
+              type="radio"
+              id="epit"
+              name="company"
+              value="E-Pit"
+              onclick="updateChargeData('E-Pit')"
+              th:checked="${chargeData.company == 'E-Pit'}"
+            />
+            <span>E-Pit</span> </label
+          ><br />
+          <label>
+            <input
+              type="radio"
+              id="powercube"
+              name="company"
+              value="파워큐브"
+              onclick="updateChargeData('파워큐브')"
+              th:checked="${chargeData.company == '파워큐브'}"
+            />
+            <span>파워큐브</span> </label
+          ><br />
+          <label>
+            <input
+              type="radio"
+              id="kepco"
+              name="company"
+              value="한전"
+              onclick="updateChargeData('한전')"
+              th:checked="${chargeData.company == '한전'}"
+            />
+            <span>한전</span> </label
+          ><br />
+          <label>
+            <input
+              type="radio"
+              id="env"
+              name="company"
+              value="환경부"
+              onclick="updateChargeData('환경부')"
+              th:checked="${chargeData.company == '환경부'}"
+            />
+            <span>환경부</span> </label
+          ><br />
+          <label>
+            <input
+              type="radio"
+              id="everon"
+              name="company"
+              value="에버온"
+              onclick="updateChargeData('에버온')"
+              th:checked="${chargeData.company == '에버온'}"
+            />
+            <span>에버온</span> </label
+          ><br />
+          <label>
+            <input
+              type="radio"
+              id="other"
+              name="company"
+              value="기타"
+              onclick="updateChargeData('기타')"
+              th:checked="${chargeData.company == '기타'}"
+            />
+            <span>기타</span> </label
+          ><br />
+        </div>
+        <button type="submit" class="btn">저장</button>
+        <button
+          type="button"
+          class="btn red"
+          onclick="document.getElementById('modal').style.display='none'"
+        >
+          취소
+        </button>
+      </div>
+    </form>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+  </body>
+</html>
+==== 파일명 :  ./build/resources/main/templates/login.html =====
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>로그인</title>
+    <!-- Materialize CSS -->
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css"
+      rel="stylesheet"
+    />
+    <style>
+      body {
+        display: flex;
+        min-height: 100vh;
+        flex-direction: column;
+      }
+
+      main {
+        flex: 1 0 auto;
+      }
+
+      .container {
+        max-width: 600px;
+        margin-top: 50px;
+      }
+
+      .card-panel {
+        padding: 32px;
+      }
+
+      .btn-large {
+        width: 100%;
+      }
+
+      .google-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: #4285f4;
+        color: white;
+      }
+
+      .google-btn img {
+        margin-right: 8px;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <div class="container">
+        <div class="row">
+          <div class="col s12 m8 offset-m2 l6 offset-l3">
+            <div class="card-panel z-depth-3">
+              <h4 class="center">로그인</h4>
+              <form action="/login" method="post">
+                <div class="input-field">
+                  <input
+                    id="username"
+                    name="username"
+                    type="text"
+                    class="validate"
+                    required
+                  />
+                  <label for="username">사용자명</label>
+                </div>
+                <div class="input-field">
+                  <input
+                    id="password"
+                    name="password"
+                    type="password"
+                    class="validate"
+                    required
+                  />
+                  <label for="password">비밀번호</label>
+                </div>
+                <div class="input-field center">
+                  <button type="submit" class="btn-large blue">로그인</button>
+                </div>
+              </form>
+              <div class="divider"></div>
+              <div class="section">
+                <a
+                  href="/oauth2/authorization/google"
+                  class="btn-large google-btn"
+                >
+                  <img
+                    src="https://upload.wikimedia.org/wikipedia/commons/4/4a/Logo_2013_Google.png"
+                    width="20"
+                    height="20"
+                    alt="Google logo"
+                  />
+                  Google로 로그인
+                </a>
+              </div>
+              <div class="center">
+                <p>계정이 없으신가요? <a href="/register">회원가입</a></p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+    <!-- Materialize JavaScript -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+  </body>
+</html>
+==== 파일명 :  ./build/resources/main/templates/chart.html =====
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>EV 충전</title>
+    <!-- Materialize CSS -->
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css"
+      rel="stylesheet"
+    />
+    <!-- Custom Styles -->
+    <link href="/css/styles.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <h1>EV 충전</h1>
+        <div class="header-right">
+          <a class="btn" href="/">메인 페이지로 돌아가기</a>
+        </div>
+      </div>
+      <canvas id="cardChart"></canvas>
+      <script>
+        var ctx = document.getElementById("cardChart").getContext("2d");
+        var cardNames = /*[[${cardNames}]]*/ []; // 서버에서 제공한 카드 이름 데이터
+        var cardPrices = /*[[${cardPrices}]]*/ []; // 서버에서 제공한 카드 가격 데이터
+
+        var cardChart = new Chart(ctx, {
+          type: "bar",
+          data: {
+            labels: cardNames,
+            datasets: [
+              {
+                label: "카드별 청구금액",
+                data: cardPrices,
+                backgroundColor: "rgba(54, 162, 235, 0.2)",
+                borderColor: "rgba(54, 162, 235, 1)",
+                borderWidth: 1,
+              },
+            ],
+          },
+          options: {
+            scales: {
+              y: {
+                beginAtZero: true,
+              },
+            },
+          },
+        });
+      </script>
+    </div>
+
+    <!-- Materialize JavaScript -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+  </body>
+</html>
+==== 파일명 :  ./build/resources/main/templates/edit.html =====
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>수정</title>
+    <!-- Materialize CSS -->
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css"
+      rel="stylesheet"
+    />
+    <!-- Custom CSS -->
+    <link href="/css/styles.css" rel="stylesheet" />
+    <style>
+      body {
+        padding: 20px;
+      }
+      .header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        position: relative;
+      }
+      .header h4 {
+        text-align: center;
+        flex-grow: 1;
+        margin: 0;
+      }
+      .header .delete-button {
+        position: absolute;
+        right: 0;
+      }
+      .button-container {
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+        margin-top: 20px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <h4>수정</h4>
+        <button
+          type="button"
+          class="btn red delete-button"
+          onclick="deleteData()"
+        >
+          삭제
+        </button>
+      </div>
+      <form
+        id="editForm"
+        th:action="@{/update}"
+        th:object="${chargeData}"
+        method="post"
+      >
+        <input type="hidden" id="id" name="id" th:value="${chargeData.id}" />
+        <div class="input-field">
+          <input
+            type="date"
+            id="date"
+            name="date"
+            th:value="${#dates.format(chargeData.date, 'yyyy-MM-dd')}"
+            autocomplete="off"
+            required
+          />
+          <label for="date" class="active">날짜</label>
+        </div>
+        <div class="input-field">
+          <select
+            id="company"
+            th:field="*{company}"
+            class="browser-default"
+            autocomplete="off"
+          >
+            <option value="한화모티브" selected>한화모티브</option>
+            <option value="SK일렉링크">SK일렉링크</option>
+            <option value="EV Infra">EV Infra</option>
+            <option value="chargev">chargev</option>
+            <option value="E-Pit">E-Pit</option>
+            <option value="파워큐브">파워큐브</option>
+            <option value="한전">한전</option>
+            <option value="환경부">환경부</option>
+            <option value="에버온">에버온</option>
+            <option value="기타">기타</option>
+          </select>
+          <label for="company" class="active">사업자</label>
+        </div>
+        <div class="input-field">
+          <input
+            type="number"
+            step="0.01"
+            id="amountOfCharge"
+            th:field="*{amountOfCharge}"
+            value="0"
+            autocomplete="off"
+            required
+          />
+          <label for="amountOfCharge" class="active">충전량</label>
+        </div>
+        <div class="input-field">
+          <input
+            type="number"
+            id="price"
+            th:field="*{price}"
+            autocomplete="off"
+            required
+          />
+          <label for="price" class="active">충전금액</label>
+        </div>
+        <div class="input-field">
+          <input
+            type="number"
+            id="point"
+            th:field="*{point}"
+            value="0"
+            autocomplete="off"
+          />
+          <label for="point" class="active">포인트 사용</label>
+        </div>
+        <div class="row">
+          <div class="input-field col s6">
+            <select
+              id="card"
+              th:field="*{card}"
+              class="browser-default"
+              autocomplete="off"
+            >
+              <option value="BC" selected>비씨카드</option>
+              <option value="Samsung">삼성카드</option>
+              <option value="Shinhan">신한카드</option>
+              <option value="Hana">하나카드</option>
+            </select>
+            <label for="card" class="active">카드</label>
+          </div>
+          <div class="input-field col s6">
+            <select
+              id="discountRate"
+              th:field="*{discountRate}"
+              class="browser-default"
+              autocomplete="off"
+            >
+              <option value="100">100%</option>
+              <option value="80">80%</option>
+              <option value="70">70%</option>
+              <option value="50">50%</option>
+              <option value="30">30%</option>
+              <option value="0">0%</option>
+            </select>
+            <label for="discountRate" class="active">할인율</label>
+          </div>
+        </div>
+        <div class="input-field">
+          <input
+            type="number"
+            id="distance"
+            th:field="*{distance}"
+            autocomplete="off"
+          />
+          <label for="distance" class="active">누적 주행거리</label>
+        </div>
+        <div class="input-field">
+          <input
+            type="number"
+            id="batteryStatus"
+            th:field="*{batteryStatus}"
+            autocomplete="off"
+            required
+          />
+          <label for="batteryStatus" class="active">배터리 잔량</label>
+        </div>
+        <div class="input-field">
+          <input
+            type="number"
+            id="drivingRange"
+            th:field="*{drivingRange}"
+            autocomplete="off"
+            required
+          />
+          <label for="drivingRange" class="active">주행 가능 거리</label>
+        </div>
+        <div class="button-container">
+          <button type="submit" class="btn">저장</button>
+          <a class="btn red" href="/">취소</a>
+        </div>
+      </form>
+    </div>
+
+    <!-- Materialize JavaScript -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        var cardSelect = document.getElementById("card");
+        cardSelect.addEventListener("change", function () {
+          fetchDiscountRate(this.value);
+        });
+
+        // 카드 기본값에 따라 할인율 자동 설정
+        if (cardSelect.value) {
+          fetchDiscountRate(cardSelect.value);
+        }
+
+        function fetchDiscountRate(cardName) {
+          fetch(`/api/getDiscountRate?cardName=${cardName}`)
+            .then((response) => response.json())
+            .then((data) => {
+              var discountRateSelect = document.getElementById("discountRate");
+              discountRateSelect.value = data.discountRate;
+              M.FormSelect.init(discountRateSelect);
+              console.log("Discount rate set to:", data.discountRate);
+            })
+            .catch((error) =>
+              console.error("Error fetching discount rate:", error)
+            );
+        }
+      });
+
+      function deleteData() {
+        var id = document.getElementById("id").value;
+        if (confirm("정말로 이 데이터를 삭제하시겠습니까?")) {
+          fetch(`/delete/${id}`, {
+            method: "DELETE",
+            headers: {
+              "Content-Type": "application/json",
+            },
+          })
+            .then((response) => {
+              if (response.ok) {
+                window.location.href = "/";
+              } else {
+                alert("데이터 삭제에 실패했습니다.");
+              }
+            })
+            .catch((error) => console.error("Error deleting data:", error));
+        }
+      }
+    </script>
+  </body>
+</html>
+==== 파일명 :  ./build/resources/main/templates/input.html =====
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>입력</title>
+    <!-- Materialize CSS -->
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css"
+      rel="stylesheet"
+    />
+    <!-- Custom CSS -->
+    <link href="/css/styles.css" rel="stylesheet" />
+  </head>
+  <body>
+    <div class="container">
+      <h4 class="title">입력</h4>
+      <form
+        id="inputForm"
+        th:action="@{/save}"
+        th:object="${chargeData}"
+        method="post"
+      >
+        <div class="input-field">
+          <input
+            type="date"
+            id="date"
+            name="date"
+            th:value="${#dates.format(today, 'yyyy-MM-dd')}"
+            autocomplete="off"
+            required
+          />
+          <label for="date" class="active">날짜</label>
+        </div>
+        <div class="input-field">
+          <select
+            id="company"
+            th:field="*{company}"
+            class="browser-default"
+            autocomplete="off"
+          >
+            <option value="한화모티브" selected>한화모티브</option>
+            <option value="SK일렉링크">SK일렉링크</option>
+            <option value="EV Infra">EV Infra</option>
+            <option value="chargev">chargev</option>
+            <option value="E-Pit">E-Pit</option>
+            <option value="파워큐브">파워큐브</option>
+            <option value="한전">한전</option>
+            <option value="환경부">환경부</option>
+            <option value="에버온">에버온</option>
+            <option value="기타">기타</option>
+          </select>
+          <label for="company" class="active">사업자</label>
+        </div>
+        <div class="input-field">
+          <input
+            type="number"
+            step="0.01"
+            id="amountOfCharge"
+            th:field="*{amountOfCharge}"
+            value="0"
+            autocomplete="off"
+            required
+          />
+          <label for="amountOfCharge" class="active">충전량</label>
+        </div>
+        <div class="input-field">
+          <input
+            type="number"
+            id="price"
+            th:field="*{price}"
+            autocomplete="off"
+            required
+          />
+          <label for="price" class="active">충전금액</label>
+        </div>
+        <div class="input-field">
+          <input
+            type="number"
+            id="point"
+            th:field="*{point}"
+            value="0"
+            autocomplete="off"
+          />
+          <label for="point" class="active">포인트 사용</label>
+        </div>
+        <div class="row">
+          <div class="input-field col s6">
+            <select
+              id="card"
+              th:field="*{card}"
+              class="browser-default"
+              autocomplete="off"
+            >
+              <option value="BC" selected>비씨카드</option>
+              <option value="Samsung">삼성카드</option>
+              <option value="Shinhan">신한카드</option>
+              <option value="Hana">하나카드</option>
+            </select>
+            <label for="card" class="active">카드</label>
+          </div>
+          <div class="input-field col s6">
+            <select
+              id="discountRate"
+              th:field="*{discountRate}"
+              class="browser-default"
+              autocomplete="off"
+            >
+              <option value="100">100%</option>
+              <option value="80">80%</option>
+              <option value="70">70%</option>
+              <option value="50">50%</option>
+              <option value="30">30%</option>
+              <option value="0">0%</option>
+            </select>
+            <label for="discountRate" class="active">할인율</label>
+          </div>
+        </div>
+        <div class="status-row">
+          <div class="status-item">
+            <span id="distance">- km</span>
+            <input type="hidden" id="distanceInput" th:field="*{distance}" />
+            <div class="status-label">누적 주행거리</div>
+          </div>
+          <div class="status-item">
+            <span id="batteryStatus">-</span>
+            <input
+              type="hidden"
+              id="batteryStatusInput"
+              th:field="*{batteryStatus}"
+            />
+            <div class="status-label">배터리 잔량</div>
+          </div>
+          <div class="status-item">
+            <span id="drivingRange">- km</span>
+            <input
+              type="hidden"
+              id="drivingRangeInput"
+              th:field="*{drivingRange}"
+            />
+            <div class="status-label">주행 가능 거리</div>
+          </div>
+          <button type="button" class="btn" onclick="fetchCarStatus()">
+            조회
+          </button>
+        </div>
+        <div class="progress">
+          <div class="indeterminate"></div>
+        </div>
+        <div class="button-container">
+          <button type="submit" class="btn">저장</button>
+          <a class="btn red" href="/">취소</a>
+        </div>
+      </form>
+    </div>
+
+    <!-- Materialize JavaScript -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+    <script>
+      function fetchCarStatus() {
+        document.querySelector(".progress").style.display = "block";
+        fetch("/api/accumulatedDistance")
+          .then((response) => response.json())
+          .then((data) => {
+            document.querySelector(".progress").style.display = "none";
+            document.getElementById("distance").innerText =
+              data.distance + " km";
+            document.getElementById("distanceInput").value = data.distance;
+            document.getElementById("batteryStatus").innerText =
+              data.batteryStatus + "%";
+            document.getElementById("batteryStatusInput").value =
+              data.batteryStatus;
+            document.getElementById("drivingRange").innerText =
+              data.drivingRange + " km";
+            document.getElementById("drivingRangeInput").value =
+              data.drivingRange;
+          })
+          .catch((error) => {
+            document.querySelector(".progress").style.display = "none";
+            console.error("Error fetching car status:", error);
+          });
+      }
+
+      document.addEventListener("DOMContentLoaded", function () {
+        var cardSelect = document.getElementById("card");
+        cardSelect.addEventListener("change", function () {
+          fetchDiscountRate(this.value);
+        });
+
+        // 카드 기본값에 따라 할인율 자동 설정
+        if (cardSelect.value) {
+          fetchDiscountRate(cardSelect.value);
+        }
+
+        // 페이지 로드 시 차량 상태 자동 조회
+        fetchCarStatus();
+
+        function fetchDiscountRate(cardName) {
+          fetch(`/api/getDiscountRate?cardName=${cardName}`)
+            .then((response) => response.json())
+            .then((data) => {
+              var discountRateSelect = document.getElementById("discountRate");
+              discountRateSelect.value = data.discountRate;
+              M.updateTextFields(); // Materialize CSS에서 label을 업데이트하는 함수 호출
+              console.log("Discount rate set to:", data.discountRate);
+            })
+            .catch((error) =>
+              console.error("Error fetching discount rate:", error)
+            );
+        }
+      });
+    </script>
+  </body>
+</html>
+==== 파일명 :  ./build/reports/tests/test/index.html =====
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<meta http-equiv="x-ua-compatible" content="IE=edge"/>
+<title>Test results - Test Summary</title>
+<link href="css/base-style.css" rel="stylesheet" type="text/css"/>
+<link href="css/style.css" rel="stylesheet" type="text/css"/>
+<script src="js/report.js" type="text/javascript"></script>
+</head>
+<body>
+<div id="content">
+<h1>Test Summary</h1>
+<div id="summary">
+<table>
+<tr>
+<td>
+<div class="summaryGroup">
+<table>
+<tr>
+<td>
+<div class="infoBox" id="tests">
+<div class="counter">15</div>
+<p>tests</p>
+</div>
+</td>
+<td>
+<div class="infoBox" id="failures">
+<div class="counter">0</div>
+<p>failures</p>
+</div>
+</td>
+<td>
+<div class="infoBox" id="ignored">
+<div class="counter">0</div>
+<p>ignored</p>
+</div>
+</td>
+<td>
+<div class="infoBox" id="duration">
+<div class="counter">4.683s</div>
+<p>duration</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</td>
+<td>
+<div class="infoBox success" id="successRate">
+<div class="percent">100%</div>
+<p>successful</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div id="tabs">
+<ul class="tabLinks">
+<li>
+<a href="#tab0">Packages</a>
+</li>
+<li>
+<a href="#tab1">Classes</a>
+</li>
+</ul>
+<div id="tab0" class="tab">
+<h2>Packages</h2>
+<table>
+<thead>
+<tr>
+<th>Package</th>
+<th>Tests</th>
+<th>Failures</th>
+<th>Ignored</th>
+<th>Duration</th>
+<th>Success rate</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="success">
+<a href="packages/com.oneship.chargebook.html">com.oneship.chargebook</a>
+</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0.201s</td>
+<td class="success">100%</td>
+</tr>
+<tr>
+<td class="success">
+<a href="packages/com.oneship.chargebook.service.html">com.oneship.chargebook.service</a>
+</td>
+<td>14</td>
+<td>0</td>
+<td>0</td>
+<td>4.482s</td>
+<td class="success">100%</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="tab1" class="tab">
+<h2>Classes</h2>
+<table>
+<thead>
+<tr>
+<th>Class</th>
+<th>Tests</th>
+<th>Failures</th>
+<th>Ignored</th>
+<th>Duration</th>
+<th>Success rate</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="success">
+<a href="classes/com.oneship.chargebook.ChargebookApplicationTests.html">com.oneship.chargebook.ChargebookApplicationTests</a>
+</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0.201s</td>
+<td class="success">100%</td>
+</tr>
+<tr>
+<td class="success">
+<a href="classes/com.oneship.chargebook.service.KiaServiceIntegrationTest.html">com.oneship.chargebook.service.KiaServiceIntegrationTest</a>
+</td>
+<td>6</td>
+<td>0</td>
+<td>0</td>
+<td>3.121s</td>
+<td class="success">100%</td>
+</tr>
+<tr>
+<td class="success">
+<a href="classes/com.oneship.chargebook.service.KiaServiceTest.html">com.oneship.chargebook.service.KiaServiceTest</a>
+</td>
+<td>8</td>
+<td>0</td>
+<td>0</td>
+<td>1.361s</td>
+<td class="success">100%</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div id="footer">
+<p>
+<div>
+<label class="hidden" id="label-for-line-wrapping-toggle" for="line-wrapping-toggle">Wrap lines
+<input id="line-wrapping-toggle" type="checkbox" autocomplete="off"/>
+</label>
+</div>Generated by 
+<a href="http://www.gradle.org">Gradle 8.8</a> at Jun 20, 2024, 6:19:28 PM</p>
+</div>
+</div>
+</body>
+</html>
+==== 파일명 :  ./build/reports/tests/test/classes/com.oneship.chargebook.service.KiaServiceIntegrationTest.html =====
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<meta http-equiv="x-ua-compatible" content="IE=edge"/>
+<title>Test results - KiaServiceIntegrationTest</title>
+<link href="../css/base-style.css" rel="stylesheet" type="text/css"/>
+<link href="../css/style.css" rel="stylesheet" type="text/css"/>
+<script src="../js/report.js" type="text/javascript"></script>
+</head>
+<body>
+<div id="content">
+<h1>KiaServiceIntegrationTest</h1>
+<div class="breadcrumbs">
+<a href="../index.html">all</a> &gt; 
+<a href="../packages/com.oneship.chargebook.service.html">com.oneship.chargebook.service</a> &gt; KiaServiceIntegrationTest</div>
+<div id="summary">
+<table>
+<tr>
+<td>
+<div class="summaryGroup">
+<table>
+<tr>
+<td>
+<div class="infoBox" id="tests">
+<div class="counter">6</div>
+<p>tests</p>
+</div>
+</td>
+<td>
+<div class="infoBox" id="failures">
+<div class="counter">0</div>
+<p>failures</p>
+</div>
+</td>
+<td>
+<div class="infoBox" id="ignored">
+<div class="counter">0</div>
+<p>ignored</p>
+</div>
+</td>
+<td>
+<div class="infoBox" id="duration">
+<div class="counter">3.121s</div>
+<p>duration</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</td>
+<td>
+<div class="infoBox success" id="successRate">
+<div class="percent">100%</div>
+<p>successful</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div id="tabs">
+<ul class="tabLinks">
+<li>
+<a href="#tab0">Tests</a>
+</li>
+<li>
+<a href="#tab1">Standard output</a>
+</li>
+</ul>
+<div id="tab0" class="tab">
+<h2>Tests</h2>
+<table>
+<thead>
+<tr>
+<th>Test</th>
+<th>Duration</th>
+<th>Result</th>
+</tr>
+</thead>
+<tr>
+<td class="success">testGetBatteryStatus()</td>
+<td class="success">0.305s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">testGetCarlist()</td>
+<td class="success">0.328s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">testGetCharging()</td>
+<td class="success">0.493s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">testGetDte()</td>
+<td class="success">0.550s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">testGetDteJson()</td>
+<td class="success">0.864s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">testGetOdometer()</td>
+<td class="success">0.581s</td>
+<td class="success">passed</td>
+</tr>
+</table>
+</div>
+<div id="tab1" class="tab">
+<h2>Standard output</h2>
+<span class="code">
+<pre>2024-06-20 18:19:22.859  INFO 26003 --- [    Test worker] .b.t.c.SpringBootTestContextBootstrapper : Neither @ContextConfiguration nor @ContextHierarchy found for test class [com.oneship.chargebook.service.KiaServiceIntegrationTest], using SpringBootContextLoader
+2024-06-20 18:19:22.860  INFO 26003 --- [    Test worker] o.s.t.c.support.AbstractContextLoader    : Could not detect default resource locations for test class [com.oneship.chargebook.service.KiaServiceIntegrationTest]: no resource found for suffixes {-context.xml, Context.groovy}.
+2024-06-20 18:19:22.860  INFO 26003 --- [    Test worker] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [com.oneship.chargebook.service.KiaServiceIntegrationTest]: KiaServiceIntegrationTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2024-06-20 18:19:22.873  INFO 26003 --- [    Test worker] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration com.oneship.chargebook.ChargebookApplication for test class com.oneship.chargebook.service.KiaServiceIntegrationTest
+2024-06-20 18:19:22.875  INFO 26003 --- [    Test worker] .b.t.c.SpringBootTestContextBootstrapper : Loaded default TestExecutionListener class names from location [META-INF/spring.factories]: [org.springframework.security.test.context.support.WithSecurityContextTestExecutionListener, org.springframework.security.test.context.support.ReactorContextTestExecutionListener, org.springframework.boot.test.autoconfigure.restdocs.RestDocsTestExecutionListener, org.springframework.boot.test.autoconfigure.web.client.MockRestServiceServerResetTestExecutionListener, org.springframework.boot.test.autoconfigure.web.servlet.MockMvcPrintOnlyOnFailureTestExecutionListener, org.springframework.boot.test.autoconfigure.web.servlet.WebDriverTestExecutionListener, org.springframework.boot.test.autoconfigure.webservices.client.MockWebServiceServerTestExecutionListener, org.springframework.boot.test.mock.mockito.MockitoTestExecutionListener, org.springframework.boot.test.mock.mockito.ResetMocksTestExecutionListener, org.springframework.test.context.web.ServletTestExecutionListener, org.springframework.test.context.support.DirtiesContextBeforeModesTestExecutionListener, org.springframework.test.context.event.ApplicationEventsTestExecutionListener, org.springframework.test.context.support.DependencyInjectionTestExecutionListener, org.springframework.test.context.support.DirtiesContextTestExecutionListener, org.springframework.test.context.transaction.TransactionalTestExecutionListener, org.springframework.test.context.jdbc.SqlScriptsTestExecutionListener, org.springframework.test.context.event.EventPublishingTestExecutionListener]
+2024-06-20 18:19:22.876  INFO 26003 --- [    Test worker] .b.t.c.SpringBootTestContextBootstrapper : Using TestExecutionListeners: [org.springframework.test.context.web.ServletTestExecutionListener@4b59a1c1, org.springframework.test.context.support.DirtiesContextBeforeModesTestExecutionListener@73418044, org.springframework.test.context.event.ApplicationEventsTestExecutionListener@58ec04f4, org.springframework.boot.test.mock.mockito.MockitoTestExecutionListener@52b2713a, org.springframework.boot.test.autoconfigure.SpringBootDependencyInjectionTestExecutionListener@54e39504, org.springframework.test.context.support.DirtiesContextTestExecutionListener@2bdf6c7c, org.springframework.test.context.transaction.TransactionalTestExecutionListener@13ac1657, org.springframework.test.context.jdbc.SqlScriptsTestExecutionListener@52d68eb9, org.springframework.security.test.context.support.WithSecurityContextTestExecutionListener@1a557a52, org.springframework.test.context.event.EventPublishingTestExecutionListener@4ab959e8, org.springframework.security.test.context.support.ReactorContextTestExecutionListener@39d4f046, org.springframework.boot.test.autoconfigure.restdocs.RestDocsTestExecutionListener@5f910283, org.springframework.boot.test.autoconfigure.web.client.MockRestServiceServerResetTestExecutionListener@6e2764c9, org.springframework.boot.test.autoconfigure.web.servlet.MockMvcPrintOnlyOnFailureTestExecutionListener@6e5106fc, org.springframework.boot.test.autoconfigure.web.servlet.WebDriverTestExecutionListener@70199db0, org.springframework.boot.test.autoconfigure.webservices.client.MockWebServiceServerTestExecutionListener@274b0c2a, org.springframework.boot.test.mock.mockito.ResetMocksTestExecutionListener@721f3526]
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+ :: Spring Boot ::                (v2.7.3)
+
+2024-06-20 18:19:22.915  INFO 26003 --- [    Test worker] c.o.c.service.KiaServiceIntegrationTest  : Starting KiaServiceIntegrationTest using Java 17.0.2 on nestor-mac-pro.local with PID 26003 (started by nestor in /Users/nestor/git/chargebook)
+2024-06-20 18:19:22.916  INFO 26003 --- [    Test worker] c.o.c.service.KiaServiceIntegrationTest  : The following 1 profile is active: &quot;test&quot;
+2024-06-20 18:19:22.918  WARN 26003 --- [    Test worker] o.s.b.c.config.ConfigDataEnvironment     : Property 'spring.profiles' imported from location 'class path resource [application-test.yml]' is invalid and should be replaced with 'spring.config.activate.on-profile' [origin: class path resource [application-test.yml] - 2:13]
+2024-06-20 18:19:23.130  INFO 26003 --- [    Test worker] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2024-06-20 18:19:23.139  INFO 26003 --- [    Test worker] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 8 ms. Found 2 JPA repository interfaces.
+2024-06-20 18:19:23.336  INFO 26003 --- [    Test worker] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
+2024-06-20 18:19:23.341  INFO 26003 --- [    Test worker] com.zaxxer.hikari.HikariDataSource       : HikariPool-2 - Starting...
+2024-06-20 18:19:23.344  INFO 26003 --- [    Test worker] com.zaxxer.hikari.HikariDataSource       : HikariPool-2 - Start completed.
+2024-06-20 18:19:23.345  INFO 26003 --- [    Test worker] org.hibernate.dialect.Dialect            : HHH000400: Using dialect: org.hibernate.dialect.H2Dialect
+Hibernate: create table charge_data (id bigint not null, amount_of_charge double not null, battery_status double not null, card varchar(255), company varchar(255), date timestamp, discount_rate integer, discounted_price integer, distance integer, driving_range double not null, final_price integer, final_unit_price integer, point integer, price integer not null, user_id bigint not null, primary key (id))
+Hibernate: create table users (id bigint not null, password varchar(255), role varchar(255), username varchar(255), primary key (id))
+Hibernate: create sequence hibernate_sequence start with 1 increment by 1
+Hibernate: alter table charge_data add constraint FKkry7b16yp8k0w7a26icps4sf6 foreign key (user_id) references users
+2024-06-20 18:19:23.402  INFO 26003 --- [    Test worker] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000490: Using JtaPlatform implementation: [org.hibernate.engine.transaction.jta.platform.internal.NoJtaPlatform]
+2024-06-20 18:19:23.403  INFO 26003 --- [    Test worker] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2024-06-20 18:19:23.409  INFO 26003 --- [    Test worker] c.o.c.config.CardDiscountConfig          : Loaded card discounts: {BC=80, Samsung=50, Shinhan=50, Hana=0}
+2024-06-20 18:19:23.675  INFO 26003 --- [    Test worker] o.s.s.web.DefaultSecurityFilterChain     : Will secure any request with [org.springframework.security.web.session.DisableEncodeUrlFilter@1a920154, org.springframework.security.web.context.request.async.WebAsyncManagerIntegrationFilter@e870ac9, org.springframework.security.web.context.SecurityContextPersistenceFilter@435848de, org.springframework.security.web.header.HeaderWriterFilter@42626e86, org.springframework.security.web.authentication.logout.LogoutFilter@7469c73d, org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestRedirectFilter@1c0f32ad, org.springframework.security.oauth2.client.web.OAuth2LoginAuthenticationFilter@5a4833ab, org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter@6dcf39c6, org.springframework.security.web.savedrequest.RequestCacheAwareFilter@48971262, org.springframework.security.web.servletapi.SecurityContextHolderAwareRequestFilter@19d043a8, org.springframework.security.web.authentication.AnonymousAuthenticationFilter@6b78cbee, org.springframework.security.web.session.SessionManagementFilter@7be2f512, org.springframework.security.web.access.ExceptionTranslationFilter@1bb21ec1, org.springframework.security.web.access.intercept.FilterSecurityInterceptor@50c20b15]
+2024-06-20 18:19:23.692  INFO 26003 --- [    Test worker] c.o.c.config.CardDiscountConfig          : Loaded card discounts: {BC=80, Samsung=50, Shinhan=50, Hana=0}
+2024-06-20 18:19:23.781  WARN 26003 --- [    Test worker] JpaBaseConfiguration$JpaWebConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2024-06-20 18:19:23.884  INFO 26003 --- [    Test worker] o.s.b.a.h2.H2ConsoleAutoConfiguration    : H2 console available at '/h2-console'. Database available at 'jdbc:h2:mem:testdb'
+2024-06-20 18:19:23.891  INFO 26003 --- [    Test worker] o.s.b.a.w.s.WelcomePageHandlerMapping    : Adding welcome page template: index
+2024-06-20 18:19:24.101  INFO 26003 --- [    Test worker] c.o.c.service.KiaServiceIntegrationTest  : Started KiaServiceIntegrationTest in 1.223 seconds (JVM running for 6.931)
+2024-06-20 18:19:24.636  INFO 26003 --- [    Test worker] c.oneship.chargebook.service.KiaService  : responseCode = 200
+2024-06-20 18:19:24.636  INFO 26003 --- [    Test worker] c.oneship.chargebook.service.KiaService  : responseData = {&quot;access_token&quot;:&quot;eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJwaWQiOiI1YThhMjczMWY1ZmYzMjI4MWNjYTJhNTMiLCJ1aWQiOiIwYzU2NjYzNi0yYTk1LTQyYzYtYjAxOC1mNzM2NWM2ZGNiNmQiLCJzaWQiOiJlOGVhYjM5ZS1jZDk3LTRlZWMtOWM1Yi1jMjM4Y2IwMjI1ZDIiLCJleHAiOjE3MTg5NjE1NjQsImlhdCI6MTcxODg3NTE2NCwiaXNzIjoidXZvIn0.Nm6qpgZzsuoUTV0_ihznPHw0HCq6HPWV6xoFgakjUR1Qc0whRZYwMATXEi-EmVE8qecYTiHRwjj9vJPg65LtHU2JD6IIozSPvIf6_KULldNScs-fbrpCLhj4NHVq1RvfQxCt2KsjOHkoizchgGtf2eis1ZUEV_QKY_h8jhuRAXFDD_FABBD-l3EowFZfy7sABlYvlUILcYLkd5AyLVHPOTNMTKTLTmcghUHYjQCjxL6uSaLeE3O3CtZT6Wb6qN4HlBCVLGdcaMEKIIXezIlep3F1bq2Z_UDw04znkN_vcV8D2_YN1JBe6ciVNfHn4ETsuAeg2gy8zokDKy27wLSQJQ&quot;,&quot;token_type&quot;:&quot;Bearer&quot;,&quot;expires_in&quot;:86400}
+2024-06-20 18:19:24.644  INFO 26003 --- [    Test worker] c.oneship.chargebook.service.KiaService  : accessToken = eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJwaWQiOiI1YThhMjczMWY1ZmYzMjI4MWNjYTJhNTMiLCJ1aWQiOiIwYzU2NjYzNi0yYTk1LTQyYzYtYjAxOC1mNzM2NWM2ZGNiNmQiLCJzaWQiOiJlOGVhYjM5ZS1jZDk3LTRlZWMtOWM1Yi1jMjM4Y2IwMjI1ZDIiLCJleHAiOjE3MTg5NjE1NjQsImlhdCI6MTcxODg3NTE2NCwiaXNzIjoidXZvIn0.Nm6qpgZzsuoUTV0_ihznPHw0HCq6HPWV6xoFgakjUR1Qc0whRZYwMATXEi-EmVE8qecYTiHRwjj9vJPg65LtHU2JD6IIozSPvIf6_KULldNScs-fbrpCLhj4NHVq1RvfQxCt2KsjOHkoizchgGtf2eis1ZUEV_QKY_h8jhuRAXFDD_FABBD-l3EowFZfy7sABlYvlUILcYLkd5AyLVHPOTNMTKTLTmcghUHYjQCjxL6uSaLeE3O3CtZT6Wb6qN4HlBCVLGdcaMEKIIXezIlep3F1bq2Z_UDw04znkN_vcV8D2_YN1JBe6ciVNfHn4ETsuAeg2gy8zokDKy27wLSQJQ
+2024-06-20 18:19:24.957  INFO 26003 --- [    Test worker] c.oneship.chargebook.service.KiaService  : 주행 가능 거리: {&quot;timestamp&quot;:&quot;20240620153818&quot;,&quot;unit&quot;:1,&quot;value&quot;:226,&quot;msgId&quot;:&quot;4f1ae768-943f-464a-8247-9f09422602c0&quot;}
+2024-06-20 18:19:25.115  INFO 26003 --- [    Test worker] c.oneship.chargebook.service.KiaService  : responseCode = 200
+2024-06-20 18:19:25.115  INFO 26003 --- [    Test worker] c.oneship.chargebook.service.KiaService  : responseData = {&quot;access_token&quot;:&quot;eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJwaWQiOiI1YThhMjczMWY1ZmYzMjI4MWNjYTJhNTMiLCJ1aWQiOiIwYzU2NjYzNi0yYTk1LTQyYzYtYjAxOC1mNzM2NWM2ZGNiNmQiLCJzaWQiOiJlOGVhYjM5ZS1jZDk3LTRlZWMtOWM1Yi1jMjM4Y2IwMjI1ZDIiLCJleHAiOjE3MTg5NjE1NjUsImlhdCI6MTcxODg3NTE2NSwiaXNzIjoidXZvIn0.ZnDuc1TDpjyngRxYhkgpLbVWfctg0rH9glv-tkb2HEDNdKXOXsxoJi-Tlka9qaDXK1Fu8nZjyeBFpu9M0be0e85dYit5yM-WSLlGo6BboXK-awPaAz7tRDkefguO5nfLOBpVIVUzWCArc9SKxlW9LQd2271EdHECnV9RoWy4jGamYwOhcPe0pi88mhddwqUV-i-Z1pgluyVeYygjoR6wmWwFsn2NLiqnAVmcR1rlOV7fGG3dl_XHc0MWHa-InMN12R6Wd3GOp6DZAHWo4UcO_Y7FjS79Ztz7800HsI7KrNBnSLx1eZ6KzHNnXaFj38CKFxS5Oa_mRDZwpL4xXPEPRg&quot;,&quot;token_type&quot;:&quot;Bearer&quot;,&quot;expires_in&quot;:86400}
+2024-06-20 18:19:25.115  INFO 26003 --- [    Test worker] c.oneship.chargebook.service.KiaService  : accessToken = eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJwaWQiOiI1YThhMjczMWY1ZmYzMjI4MWNjYTJhNTMiLCJ1aWQiOiIwYzU2NjYzNi0yYTk1LTQyYzYtYjAxOC1mNzM2NWM2ZGNiNmQiLCJzaWQiOiJlOGVhYjM5ZS1jZDk3LTRlZWMtOWM1Yi1jMjM4Y2IwMjI1ZDIiLCJleHAiOjE3MTg5NjE1NjUsImlhdCI6MTcxODg3NTE2NSwiaXNzIjoidXZvIn0.ZnDuc1TDpjyngRxYhkgpLbVWfctg0rH9glv-tkb2HEDNdKXOXsxoJi-Tlka9qaDXK1Fu8nZjyeBFpu9M0be0e85dYit5yM-WSLlGo6BboXK-awPaAz7tRDkefguO5nfLOBpVIVUzWCArc9SKxlW9LQd2271EdHECnV9RoWy4jGamYwOhcPe0pi88mhddwqUV-i-Z1pgluyVeYygjoR6wmWwFsn2NLiqnAVmcR1rlOV7fGG3dl_XHc0MWHa-InMN12R6Wd3GOp6DZAHWo4UcO_Y7FjS79Ztz7800HsI7KrNBnSLx1eZ6KzHNnXaFj38CKFxS5Oa_mRDZwpL4xXPEPRg
+2024-06-20 18:19:25.266  INFO 26003 --- [    Test worker] c.oneship.chargebook.service.KiaService  : responseCode = 200
+2024-06-20 18:19:25.266  INFO 26003 --- [    Test worker] c.oneship.chargebook.service.KiaService  : responseData = {&quot;access_token&quot;:&quot;eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJwaWQiOiI1YThhMjczMWY1ZmYzMjI4MWNjYTJhNTMiLCJ1aWQiOiIwYzU2NjYzNi0yYTk1LTQyYzYtYjAxOC1mNzM2NWM2ZGNiNmQiLCJzaWQiOiJlOGVhYjM5ZS1jZDk3LTRlZWMtOWM1Yi1jMjM4Y2IwMjI1ZDIiLCJleHAiOjE3MTg5NjE1NjUsImlhdCI6MTcxODg3NTE2NSwiaXNzIjoidXZvIn0.ZnDuc1TDpjyngRxYhkgpLbVWfctg0rH9glv-tkb2HEDNdKXOXsxoJi-Tlka9qaDXK1Fu8nZjyeBFpu9M0be0e85dYit5yM-WSLlGo6BboXK-awPaAz7tRDkefguO5nfLOBpVIVUzWCArc9SKxlW9LQd2271EdHECnV9RoWy4jGamYwOhcPe0pi88mhddwqUV-i-Z1pgluyVeYygjoR6wmWwFsn2NLiqnAVmcR1rlOV7fGG3dl_XHc0MWHa-InMN12R6Wd3GOp6DZAHWo4UcO_Y7FjS79Ztz7800HsI7KrNBnSLx1eZ6KzHNnXaFj38CKFxS5Oa_mRDZwpL4xXPEPRg&quot;,&quot;token_type&quot;:&quot;Bearer&quot;,&quot;expires_in&quot;:86400}
+2024-06-20 18:19:25.267  INFO 26003 --- [    Test worker] c.oneship.chargebook.service.KiaService  : accessToken = eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJwaWQiOiI1YThhMjczMWY1ZmYzMjI4MWNjYTJhNTMiLCJ1aWQiOiIwYzU2NjYzNi0yYTk1LTQyYzYtYjAxOC1mNzM2NWM2ZGNiNmQiLCJzaWQiOiJlOGVhYjM5ZS1jZDk3LTRlZWMtOWM1Yi1jMjM4Y2IwMjI1ZDIiLCJleHAiOjE3MTg5NjE1NjUsImlhdCI6MTcxODg3NTE2NSwiaXNzIjoidXZvIn0.ZnDuc1TDpjyngRxYhkgpLbVWfctg0rH9glv-tkb2HEDNdKXOXsxoJi-Tlka9qaDXK1Fu8nZjyeBFpu9M0be0e85dYit5yM-WSLlGo6BboXK-awPaAz7tRDkefguO5nfLOBpVIVUzWCArc9SKxlW9LQd2271EdHECnV9RoWy4jGamYwOhcPe0pi88mhddwqUV-i-Z1pgluyVeYygjoR6wmWwFsn2NLiqnAVmcR1rlOV7fGG3dl_XHc0MWHa-InMN12R6Wd3GOp6DZAHWo4UcO_Y7FjS79Ztz7800HsI7KrNBnSLx1eZ6KzHNnXaFj38CKFxS5Oa_mRDZwpL4xXPEPRg
+2024-06-20 18:19:25.462  INFO 26003 --- [    Test worker] c.oneship.chargebook.service.KiaService  : 충전 상태: {&quot;batteryPlugin&quot;:0,&quot;batteryCharge&quot;:false,&quot;soc&quot;:82,&quot;timestamp&quot;:&quot;20240620153818&quot;,&quot;msgId&quot;:&quot;f4662c35-06aa-4d81-8be8-77a28ded4c7e&quot;}
+2024-06-20 18:19:25.611  INFO 26003 --- [    Test worker] c.oneship.chargebook.service.KiaService  : responseCode = 200
+2024-06-20 18:19:25.611  INFO 26003 --- [    Test worker] c.oneship.chargebook.service.KiaService  : responseData = {&quot;access_token&quot;:&quot;eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJwaWQiOiI1YThhMjczMWY1ZmYzMjI4MWNjYTJhNTMiLCJ1aWQiOiIwYzU2NjYzNi0yYTk1LTQyYzYtYjAxOC1mNzM2NWM2ZGNiNmQiLCJzaWQiOiJlOGVhYjM5ZS1jZDk3LTRlZWMtOWM1Yi1jMjM4Y2IwMjI1ZDIiLCJleHAiOjE3MTg5NjE1NjUsImlhdCI6MTcxODg3NTE2NSwiaXNzIjoidXZvIn0.ZnDuc1TDpjyngRxYhkgpLbVWfctg0rH9glv-tkb2HEDNdKXOXsxoJi-Tlka9qaDXK1Fu8nZjyeBFpu9M0be0e85dYit5yM-WSLlGo6BboXK-awPaAz7tRDkefguO5nfLOBpVIVUzWCArc9SKxlW9LQd2271EdHECnV9RoWy4jGamYwOhcPe0pi88mhddwqUV-i-Z1pgluyVeYygjoR6wmWwFsn2NLiqnAVmcR1rlOV7fGG3dl_XHc0MWHa-InMN12R6Wd3GOp6DZAHWo4UcO_Y7FjS79Ztz7800HsI7KrNBnSLx1eZ6KzHNnXaFj38CKFxS5Oa_mRDZwpL4xXPEPRg&quot;,&quot;token_type&quot;:&quot;Bearer&quot;,&quot;expires_in&quot;:86400}
+2024-06-20 18:19:25.611  INFO 26003 --- [    Test worker] c.oneship.chargebook.service.KiaService  : accessToken = eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJwaWQiOiI1YThhMjczMWY1ZmYzMjI4MWNjYTJhNTMiLCJ1aWQiOiIwYzU2NjYzNi0yYTk1LTQyYzYtYjAxOC1mNzM2NWM2ZGNiNmQiLCJzaWQiOiJlOGVhYjM5ZS1jZDk3LTRlZWMtOWM1Yi1jMjM4Y2IwMjI1ZDIiLCJleHAiOjE3MTg5NjE1NjUsImlhdCI6MTcxODg3NTE2NSwiaXNzIjoidXZvIn0.ZnDuc1TDpjyngRxYhkgpLbVWfctg0rH9glv-tkb2HEDNdKXOXsxoJi-Tlka9qaDXK1Fu8nZjyeBFpu9M0be0e85dYit5yM-WSLlGo6BboXK-awPaAz7tRDkefguO5nfLOBpVIVUzWCArc9SKxlW9LQd2271EdHECnV9RoWy4jGamYwOhcPe0pi88mhddwqUV-i-Z1pgluyVeYygjoR6wmWwFsn2NLiqnAVmcR1rlOV7fGG3dl_XHc0MWHa-InMN12R6Wd3GOp6DZAHWo4UcO_Y7FjS79Ztz7800HsI7KrNBnSLx1eZ6KzHNnXaFj38CKFxS5Oa_mRDZwpL4xXPEPRg
+2024-06-20 18:19:25.745  INFO 26003 --- [    Test worker] c.oneship.chargebook.service.KiaService  : responseCode = 200
+2024-06-20 18:19:25.746  INFO 26003 --- [    Test worker] c.oneship.chargebook.service.KiaService  : responseData = {&quot;access_token&quot;:&quot;eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJwaWQiOiI1YThhMjczMWY1ZmYzMjI4MWNjYTJhNTMiLCJ1aWQiOiIwYzU2NjYzNi0yYTk1LTQyYzYtYjAxOC1mNzM2NWM2ZGNiNmQiLCJzaWQiOiJlOGVhYjM5ZS1jZDk3LTRlZWMtOWM1Yi1jMjM4Y2IwMjI1ZDIiLCJleHAiOjE3MTg5NjE1NjUsImlhdCI6MTcxODg3NTE2NSwiaXNzIjoidXZvIn0.ZnDuc1TDpjyngRxYhkgpLbVWfctg0rH9glv-tkb2HEDNdKXOXsxoJi-Tlka9qaDXK1Fu8nZjyeBFpu9M0be0e85dYit5yM-WSLlGo6BboXK-awPaAz7tRDkefguO5nfLOBpVIVUzWCArc9SKxlW9LQd2271EdHECnV9RoWy4jGamYwOhcPe0pi88mhddwqUV-i-Z1pgluyVeYygjoR6wmWwFsn2NLiqnAVmcR1rlOV7fGG3dl_XHc0MWHa-InMN12R6Wd3GOp6DZAHWo4UcO_Y7FjS79Ztz7800HsI7KrNBnSLx1eZ6KzHNnXaFj38CKFxS5Oa_mRDZwpL4xXPEPRg&quot;,&quot;token_type&quot;:&quot;Bearer&quot;,&quot;expires_in&quot;:86400}
+2024-06-20 18:19:25.746  INFO 26003 --- [    Test worker] c.oneship.chargebook.service.KiaService  : accessToken = eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJwaWQiOiI1YThhMjczMWY1ZmYzMjI4MWNjYTJhNTMiLCJ1aWQiOiIwYzU2NjYzNi0yYTk1LTQyYzYtYjAxOC1mNzM2NWM2ZGNiNmQiLCJzaWQiOiJlOGVhYjM5ZS1jZDk3LTRlZWMtOWM1Yi1jMjM4Y2IwMjI1ZDIiLCJleHAiOjE3MTg5NjE1NjUsImlhdCI6MTcxODg3NTE2NSwiaXNzIjoidXZvIn0.ZnDuc1TDpjyngRxYhkgpLbVWfctg0rH9glv-tkb2HEDNdKXOXsxoJi-Tlka9qaDXK1Fu8nZjyeBFpu9M0be0e85dYit5yM-WSLlGo6BboXK-awPaAz7tRDkefguO5nfLOBpVIVUzWCArc9SKxlW9LQd2271EdHECnV9RoWy4jGamYwOhcPe0pi88mhddwqUV-i-Z1pgluyVeYygjoR6wmWwFsn2NLiqnAVmcR1rlOV7fGG3dl_XHc0MWHa-InMN12R6Wd3GOp6DZAHWo4UcO_Y7FjS79Ztz7800HsI7KrNBnSLx1eZ6KzHNnXaFj38CKFxS5Oa_mRDZwpL4xXPEPRg
+2024-06-20 18:19:26.045  INFO 26003 --- [    Test worker] c.oneship.chargebook.service.KiaService  : 누적 운행 거리: {&quot;odometers&quot;:[{&quot;date&quot;:&quot;20240620&quot;,&quot;unit&quot;:1,&quot;value&quot;:8198,&quot;timestamp&quot;:&quot;20240620153818&quot;}],&quot;msgId&quot;:&quot;4f0e426f-6e11-470d-9cb4-fdd2c6a98adf&quot;}
+2024-06-20 18:19:26.202  INFO 26003 --- [    Test worker] c.oneship.chargebook.service.KiaService  : responseCode = 200
+2024-06-20 18:19:26.203  INFO 26003 --- [    Test worker] c.oneship.chargebook.service.KiaService  : responseData = {&quot;access_token&quot;:&quot;eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJwaWQiOiI1YThhMjczMWY1ZmYzMjI4MWNjYTJhNTMiLCJ1aWQiOiIwYzU2NjYzNi0yYTk1LTQyYzYtYjAxOC1mNzM2NWM2ZGNiNmQiLCJzaWQiOiJlOGVhYjM5ZS1jZDk3LTRlZWMtOWM1Yi1jMjM4Y2IwMjI1ZDIiLCJleHAiOjE3MTg5NjE1NjYsImlhdCI6MTcxODg3NTE2NiwiaXNzIjoidXZvIn0.gRwp5pVF5bSyNw3Jm3ayBQXEuayYfg23Q5p82ADQ70zxJnSFgygfFoR8SpURSQ3be_KZhOBLMloL1nD-OI27bzHxZgwsTQYMakmbXV2gqiNxTZX19JmnUqKNSFC8wJIZLjk7GX2VnaZO3wExesOykCvChSHOy1TRIdn3EUuoj8lAN9H7euTB61lT194SX616C-8SrP_9fDEY8oGLVH1vi2-HxpqkSouQ3COb92gcCEjYp9TiqOLSLsL_3SotKM7hlTdoShLsPSgPCKP1KFJKgkelas40HdCSup4DCSDAa0PslvhOwK5rpCdDyc-pi3SvRj5lGggt2Q6aAVFVhPTiaw&quot;,&quot;token_type&quot;:&quot;Bearer&quot;,&quot;expires_in&quot;:86400}
+2024-06-20 18:19:26.203  INFO 26003 --- [    Test worker] c.oneship.chargebook.service.KiaService  : accessToken = eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJwaWQiOiI1YThhMjczMWY1ZmYzMjI4MWNjYTJhNTMiLCJ1aWQiOiIwYzU2NjYzNi0yYTk1LTQyYzYtYjAxOC1mNzM2NWM2ZGNiNmQiLCJzaWQiOiJlOGVhYjM5ZS1jZDk3LTRlZWMtOWM1Yi1jMjM4Y2IwMjI1ZDIiLCJleHAiOjE3MTg5NjE1NjYsImlhdCI6MTcxODg3NTE2NiwiaXNzIjoidXZvIn0.gRwp5pVF5bSyNw3Jm3ayBQXEuayYfg23Q5p82ADQ70zxJnSFgygfFoR8SpURSQ3be_KZhOBLMloL1nD-OI27bzHxZgwsTQYMakmbXV2gqiNxTZX19JmnUqKNSFC8wJIZLjk7GX2VnaZO3wExesOykCvChSHOy1TRIdn3EUuoj8lAN9H7euTB61lT194SX616C-8SrP_9fDEY8oGLVH1vi2-HxpqkSouQ3COb92gcCEjYp9TiqOLSLsL_3SotKM7hlTdoShLsPSgPCKP1KFJKgkelas40HdCSup4DCSDAa0PslvhOwK5rpCdDyc-pi3SvRj5lGggt2Q6aAVFVhPTiaw
+2024-06-20 18:19:26.375  INFO 26003 --- [    Test worker] c.oneship.chargebook.service.KiaService  : 차량 리스트: {&quot;cars&quot;:[{&quot;carId&quot;:&quot;65169010-30e1-4c7e-91e4-f747091e2268&quot;,&quot;carName&quot;:&quot;Ray&quot;,&quot;carNickname&quot;:&quot;Ray&quot;,&quot;carSellname&quot;:&quot;Ray&quot;,&quot;carType&quot;:&quot;EV&quot;}],&quot;msgId&quot;:&quot;a3878c04-cba3-409b-b793-270859789ba6&quot;}
+2024-06-20 18:19:26.521  INFO 26003 --- [    Test worker] c.oneship.chargebook.service.KiaService  : responseCode = 200
+2024-06-20 18:19:26.521  INFO 26003 --- [    Test worker] c.oneship.chargebook.service.KiaService  : responseData = {&quot;access_token&quot;:&quot;eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJwaWQiOiI1YThhMjczMWY1ZmYzMjI4MWNjYTJhNTMiLCJ1aWQiOiIwYzU2NjYzNi0yYTk1LTQyYzYtYjAxOC1mNzM2NWM2ZGNiNmQiLCJzaWQiOiJlOGVhYjM5ZS1jZDk3LTRlZWMtOWM1Yi1jMjM4Y2IwMjI1ZDIiLCJleHAiOjE3MTg5NjE1NjYsImlhdCI6MTcxODg3NTE2NiwiaXNzIjoidXZvIn0.gRwp5pVF5bSyNw3Jm3ayBQXEuayYfg23Q5p82ADQ70zxJnSFgygfFoR8SpURSQ3be_KZhOBLMloL1nD-OI27bzHxZgwsTQYMakmbXV2gqiNxTZX19JmnUqKNSFC8wJIZLjk7GX2VnaZO3wExesOykCvChSHOy1TRIdn3EUuoj8lAN9H7euTB61lT194SX616C-8SrP_9fDEY8oGLVH1vi2-HxpqkSouQ3COb92gcCEjYp9TiqOLSLsL_3SotKM7hlTdoShLsPSgPCKP1KFJKgkelas40HdCSup4DCSDAa0PslvhOwK5rpCdDyc-pi3SvRj5lGggt2Q6aAVFVhPTiaw&quot;,&quot;token_type&quot;:&quot;Bearer&quot;,&quot;expires_in&quot;:86400}
+2024-06-20 18:19:26.522  INFO 26003 --- [    Test worker] c.oneship.chargebook.service.KiaService  : accessToken = eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJwaWQiOiI1YThhMjczMWY1ZmYzMjI4MWNjYTJhNTMiLCJ1aWQiOiIwYzU2NjYzNi0yYTk1LTQyYzYtYjAxOC1mNzM2NWM2ZGNiNmQiLCJzaWQiOiJlOGVhYjM5ZS1jZDk3LTRlZWMtOWM1Yi1jMjM4Y2IwMjI1ZDIiLCJleHAiOjE3MTg5NjE1NjYsImlhdCI6MTcxODg3NTE2NiwiaXNzIjoidXZvIn0.gRwp5pVF5bSyNw3Jm3ayBQXEuayYfg23Q5p82ADQ70zxJnSFgygfFoR8SpURSQ3be_KZhOBLMloL1nD-OI27bzHxZgwsTQYMakmbXV2gqiNxTZX19JmnUqKNSFC8wJIZLjk7GX2VnaZO3wExesOykCvChSHOy1TRIdn3EUuoj8lAN9H7euTB61lT194SX616C-8SrP_9fDEY8oGLVH1vi2-HxpqkSouQ3COb92gcCEjYp9TiqOLSLsL_3SotKM7hlTdoShLsPSgPCKP1KFJKgkelas40HdCSup4DCSDAa0PslvhOwK5rpCdDyc-pi3SvRj5lGggt2Q6aAVFVhPTiaw
+2024-06-20 18:19:26.681  INFO 26003 --- [    Test worker] c.oneship.chargebook.service.KiaService  : 전기차 배터리 잔량: {&quot;soc&quot;:82,&quot;timestamp&quot;:&quot;20240620153818&quot;,&quot;msgId&quot;:&quot;de6dd357-1221-4233-9258-4fffa9152222&quot;}
+2024-06-20 18:19:26.681  INFO 26003 --- [    Test worker] c.oneship.chargebook.service.KiaService  : 전기차 배터리 잔량: {&quot;soc&quot;:82,&quot;timestamp&quot;:&quot;20240620153818&quot;,&quot;msgId&quot;:&quot;de6dd357-1221-4233-9258-4fffa9152222&quot;}
+2024-06-20 18:19:26.825  INFO 26003 --- [    Test worker] c.oneship.chargebook.service.KiaService  : responseCode = 200
+2024-06-20 18:19:26.826  INFO 26003 --- [    Test worker] c.oneship.chargebook.service.KiaService  : responseData = {&quot;access_token&quot;:&quot;eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJwaWQiOiI1YThhMjczMWY1ZmYzMjI4MWNjYTJhNTMiLCJ1aWQiOiIwYzU2NjYzNi0yYTk1LTQyYzYtYjAxOC1mNzM2NWM2ZGNiNmQiLCJzaWQiOiJlOGVhYjM5ZS1jZDk3LTRlZWMtOWM1Yi1jMjM4Y2IwMjI1ZDIiLCJleHAiOjE3MTg5NjE1NjYsImlhdCI6MTcxODg3NTE2NiwiaXNzIjoidXZvIn0.gRwp5pVF5bSyNw3Jm3ayBQXEuayYfg23Q5p82ADQ70zxJnSFgygfFoR8SpURSQ3be_KZhOBLMloL1nD-OI27bzHxZgwsTQYMakmbXV2gqiNxTZX19JmnUqKNSFC8wJIZLjk7GX2VnaZO3wExesOykCvChSHOy1TRIdn3EUuoj8lAN9H7euTB61lT194SX616C-8SrP_9fDEY8oGLVH1vi2-HxpqkSouQ3COb92gcCEjYp9TiqOLSLsL_3SotKM7hlTdoShLsPSgPCKP1KFJKgkelas40HdCSup4DCSDAa0PslvhOwK5rpCdDyc-pi3SvRj5lGggt2Q6aAVFVhPTiaw&quot;,&quot;token_type&quot;:&quot;Bearer&quot;,&quot;expires_in&quot;:86400}
+2024-06-20 18:19:26.826  INFO 26003 --- [    Test worker] c.oneship.chargebook.service.KiaService  : accessToken = eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJwaWQiOiI1YThhMjczMWY1ZmYzMjI4MWNjYTJhNTMiLCJ1aWQiOiIwYzU2NjYzNi0yYTk1LTQyYzYtYjAxOC1mNzM2NWM2ZGNiNmQiLCJzaWQiOiJlOGVhYjM5ZS1jZDk3LTRlZWMtOWM1Yi1jMjM4Y2IwMjI1ZDIiLCJleHAiOjE3MTg5NjE1NjYsImlhdCI6MTcxODg3NTE2NiwiaXNzIjoidXZvIn0.gRwp5pVF5bSyNw3Jm3ayBQXEuayYfg23Q5p82ADQ70zxJnSFgygfFoR8SpURSQ3be_KZhOBLMloL1nD-OI27bzHxZgwsTQYMakmbXV2gqiNxTZX19JmnUqKNSFC8wJIZLjk7GX2VnaZO3wExesOykCvChSHOy1TRIdn3EUuoj8lAN9H7euTB61lT194SX616C-8SrP_9fDEY8oGLVH1vi2-HxpqkSouQ3COb92gcCEjYp9TiqOLSLsL_3SotKM7hlTdoShLsPSgPCKP1KFJKgkelas40HdCSup4DCSDAa0PslvhOwK5rpCdDyc-pi3SvRj5lGggt2Q6aAVFVhPTiaw
+2024-06-20 18:19:26.971  INFO 26003 --- [    Test worker] c.oneship.chargebook.service.KiaService  : responseCode = 200
+2024-06-20 18:19:26.972  INFO 26003 --- [    Test worker] c.oneship.chargebook.service.KiaService  : responseData = {&quot;access_token&quot;:&quot;eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJwaWQiOiI1YThhMjczMWY1ZmYzMjI4MWNjYTJhNTMiLCJ1aWQiOiIwYzU2NjYzNi0yYTk1LTQyYzYtYjAxOC1mNzM2NWM2ZGNiNmQiLCJzaWQiOiJlOGVhYjM5ZS1jZDk3LTRlZWMtOWM1Yi1jMjM4Y2IwMjI1ZDIiLCJleHAiOjE3MTg5NjE1NjcsImlhdCI6MTcxODg3NTE2NywiaXNzIjoidXZvIn0.FJWdTVMoE_Mup-l5RihzW_T5HKHpYr46TMzl5So2LSPpLUxeOssW-dBxgSpNPtYj0jWtsifYup_PFJE2zIdwA_nXg--GJ2McldGbi7uuWT0N8kckfM6gvRJI4_wx1THguUtP0GCbEI6ikCXwnIgY_hSh87MkWT0TME8udgr-d623D-aQswEqzAdb_mBEZFE_wGXE4dxbHlUCJMWnrgHCSpIo1wmEHP055Ssu5NrM9bOdYfA0tN78dM7nWhfvPaue5-EM9mmNh9iw4M1WDeOmSeBSYDHmm_v-vOnnOuBEJbtLkenPnKfQ3RCXWcUfNceSBIJ7XLrJSt33wbVTu6XLZA&quot;,&quot;token_type&quot;:&quot;Bearer&quot;,&quot;expires_in&quot;:86400}
+2024-06-20 18:19:26.972  INFO 26003 --- [    Test worker] c.oneship.chargebook.service.KiaService  : accessToken = eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJwaWQiOiI1YThhMjczMWY1ZmYzMjI4MWNjYTJhNTMiLCJ1aWQiOiIwYzU2NjYzNi0yYTk1LTQyYzYtYjAxOC1mNzM2NWM2ZGNiNmQiLCJzaWQiOiJlOGVhYjM5ZS1jZDk3LTRlZWMtOWM1Yi1jMjM4Y2IwMjI1ZDIiLCJleHAiOjE3MTg5NjE1NjcsImlhdCI6MTcxODg3NTE2NywiaXNzIjoidXZvIn0.FJWdTVMoE_Mup-l5RihzW_T5HKHpYr46TMzl5So2LSPpLUxeOssW-dBxgSpNPtYj0jWtsifYup_PFJE2zIdwA_nXg--GJ2McldGbi7uuWT0N8kckfM6gvRJI4_wx1THguUtP0GCbEI6ikCXwnIgY_hSh87MkWT0TME8udgr-d623D-aQswEqzAdb_mBEZFE_wGXE4dxbHlUCJMWnrgHCSpIo1wmEHP055Ssu5NrM9bOdYfA0tN78dM7nWhfvPaue5-EM9mmNh9iw4M1WDeOmSeBSYDHmm_v-vOnnOuBEJbtLkenPnKfQ3RCXWcUfNceSBIJ7XLrJSt33wbVTu6XLZA
+2024-06-20 18:19:27.232  INFO 26003 --- [    Test worker] c.oneship.chargebook.service.KiaService  : 주행 가능 거리: {&quot;timestamp&quot;:&quot;20240620153818&quot;,&quot;unit&quot;:1,&quot;value&quot;:226,&quot;msgId&quot;:&quot;2cb4c33f-eb38-4e29-b51c-f29e8c920d3e&quot;}
+</pre>
+</span>
+</div>
+</div>
+<div id="footer">
+<p>
+<div>
+<label class="hidden" id="label-for-line-wrapping-toggle" for="line-wrapping-toggle">Wrap lines
+<input id="line-wrapping-toggle" type="checkbox" autocomplete="off"/>
+</label>
+</div>Generated by 
+<a href="http://www.gradle.org">Gradle 8.8</a> at Jun 20, 2024, 6:19:28 PM</p>
+</div>
+</div>
+</body>
+</html>
+==== 파일명 :  ./build/reports/tests/test/classes/com.oneship.chargebook.ChargebookApplicationTests.html =====
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<meta http-equiv="x-ua-compatible" content="IE=edge"/>
+<title>Test results - ChargebookApplicationTests</title>
+<link href="../css/base-style.css" rel="stylesheet" type="text/css"/>
+<link href="../css/style.css" rel="stylesheet" type="text/css"/>
+<script src="../js/report.js" type="text/javascript"></script>
+</head>
+<body>
+<div id="content">
+<h1>ChargebookApplicationTests</h1>
+<div class="breadcrumbs">
+<a href="../index.html">all</a> &gt; 
+<a href="../packages/com.oneship.chargebook.html">com.oneship.chargebook</a> &gt; ChargebookApplicationTests</div>
+<div id="summary">
+<table>
+<tr>
+<td>
+<div class="summaryGroup">
+<table>
+<tr>
+<td>
+<div class="infoBox" id="tests">
+<div class="counter">1</div>
+<p>tests</p>
+</div>
+</td>
+<td>
+<div class="infoBox" id="failures">
+<div class="counter">0</div>
+<p>failures</p>
+</div>
+</td>
+<td>
+<div class="infoBox" id="ignored">
+<div class="counter">0</div>
+<p>ignored</p>
+</div>
+</td>
+<td>
+<div class="infoBox" id="duration">
+<div class="counter">0.201s</div>
+<p>duration</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</td>
+<td>
+<div class="infoBox success" id="successRate">
+<div class="percent">100%</div>
+<p>successful</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div id="tabs">
+<ul class="tabLinks">
+<li>
+<a href="#tab0">Tests</a>
+</li>
+<li>
+<a href="#tab1">Standard output</a>
+</li>
+</ul>
+<div id="tab0" class="tab">
+<h2>Tests</h2>
+<table>
+<thead>
+<tr>
+<th>Test</th>
+<th>Duration</th>
+<th>Result</th>
+</tr>
+</thead>
+<tr>
+<td class="success">contextLoads()</td>
+<td class="success">0.201s</td>
+<td class="success">passed</td>
+</tr>
+</table>
+</div>
+<div id="tab1" class="tab">
+<h2>Standard output</h2>
+<span class="code">
+<pre>18:19:17.864 [Test worker] DEBUG org.springframework.test.context.BootstrapUtils - Instantiating CacheAwareContextLoaderDelegate from class [org.springframework.test.context.cache.DefaultCacheAwareContextLoaderDelegate]
+18:19:17.877 [Test worker] DEBUG org.springframework.test.context.BootstrapUtils - Instantiating BootstrapContext using constructor [public org.springframework.test.context.support.DefaultBootstrapContext(java.lang.Class,org.springframework.test.context.CacheAwareContextLoaderDelegate)]
+18:19:17.906 [Test worker] DEBUG org.springframework.test.context.BootstrapUtils - Instantiating TestContextBootstrapper for test class [com.oneship.chargebook.ChargebookApplicationTests] from class [org.springframework.boot.test.context.SpringBootTestContextBootstrapper]
+18:19:17.921 [Test worker] INFO org.springframework.boot.test.context.SpringBootTestContextBootstrapper - Neither @ContextConfiguration nor @ContextHierarchy found for test class [com.oneship.chargebook.ChargebookApplicationTests], using SpringBootContextLoader
+18:19:17.926 [Test worker] DEBUG org.springframework.test.context.support.AbstractContextLoader - Did not detect default resource location for test class [com.oneship.chargebook.ChargebookApplicationTests]: class path resource [com/oneship/chargebook/ChargebookApplicationTests-context.xml] does not exist
+18:19:17.926 [Test worker] DEBUG org.springframework.test.context.support.AbstractContextLoader - Did not detect default resource location for test class [com.oneship.chargebook.ChargebookApplicationTests]: class path resource [com/oneship/chargebook/ChargebookApplicationTestsContext.groovy] does not exist
+18:19:17.927 [Test worker] INFO org.springframework.test.context.support.AbstractContextLoader - Could not detect default resource locations for test class [com.oneship.chargebook.ChargebookApplicationTests]: no resource found for suffixes {-context.xml, Context.groovy}.
+18:19:17.928 [Test worker] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils - Could not detect default configuration classes for test class [com.oneship.chargebook.ChargebookApplicationTests]: ChargebookApplicationTests does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+18:19:17.985 [Test worker] DEBUG org.springframework.test.context.support.ActiveProfilesUtils - Could not find an 'annotation declaring class' for annotation type [org.springframework.test.context.ActiveProfiles] and class [com.oneship.chargebook.ChargebookApplicationTests]
+18:19:18.032 [Test worker] DEBUG org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider - Identified candidate component class: file [/Users/nestor/git/chargebook/build/classes/java/main/com/oneship/chargebook/ChargebookApplication.class]
+18:19:18.033 [Test worker] INFO org.springframework.boot.test.context.SpringBootTestContextBootstrapper - Found @SpringBootConfiguration com.oneship.chargebook.ChargebookApplication for test class com.oneship.chargebook.ChargebookApplicationTests
+18:19:18.095 [Test worker] DEBUG org.springframework.boot.test.context.SpringBootTestContextBootstrapper - @TestExecutionListeners is not present for class [com.oneship.chargebook.ChargebookApplicationTests]: using defaults.
+18:19:18.096 [Test worker] INFO org.springframework.boot.test.context.SpringBootTestContextBootstrapper - Loaded default TestExecutionListener class names from location [META-INF/spring.factories]: [org.springframework.security.test.context.support.WithSecurityContextTestExecutionListener, org.springframework.security.test.context.support.ReactorContextTestExecutionListener, org.springframework.boot.test.autoconfigure.restdocs.RestDocsTestExecutionListener, org.springframework.boot.test.autoconfigure.web.client.MockRestServiceServerResetTestExecutionListener, org.springframework.boot.test.autoconfigure.web.servlet.MockMvcPrintOnlyOnFailureTestExecutionListener, org.springframework.boot.test.autoconfigure.web.servlet.WebDriverTestExecutionListener, org.springframework.boot.test.autoconfigure.webservices.client.MockWebServiceServerTestExecutionListener, org.springframework.boot.test.mock.mockito.MockitoTestExecutionListener, org.springframework.boot.test.mock.mockito.ResetMocksTestExecutionListener, org.springframework.test.context.web.ServletTestExecutionListener, org.springframework.test.context.support.DirtiesContextBeforeModesTestExecutionListener, org.springframework.test.context.event.ApplicationEventsTestExecutionListener, org.springframework.test.context.support.DependencyInjectionTestExecutionListener, org.springframework.test.context.support.DirtiesContextTestExecutionListener, org.springframework.test.context.transaction.TransactionalTestExecutionListener, org.springframework.test.context.jdbc.SqlScriptsTestExecutionListener, org.springframework.test.context.event.EventPublishingTestExecutionListener]
+18:19:18.118 [Test worker] INFO org.springframework.boot.test.context.SpringBootTestContextBootstrapper - Using TestExecutionListeners: [org.springframework.test.context.web.ServletTestExecutionListener@878452d, org.springframework.test.context.support.DirtiesContextBeforeModesTestExecutionListener@426b6a74, org.springframework.test.context.event.ApplicationEventsTestExecutionListener@4c51bb7, org.springframework.boot.test.mock.mockito.MockitoTestExecutionListener@83298d7, org.springframework.boot.test.autoconfigure.SpringBootDependencyInjectionTestExecutionListener@42a9e5d1, org.springframework.test.context.support.DirtiesContextTestExecutionListener@5b080f3a, org.springframework.test.context.transaction.TransactionalTestExecutionListener@773cbf4f, org.springframework.test.context.jdbc.SqlScriptsTestExecutionListener@6b54655f, org.springframework.security.test.context.support.WithSecurityContextTestExecutionListener@665e9289, org.springframework.test.context.event.EventPublishingTestExecutionListener@7d3430a7, org.springframework.security.test.context.support.ReactorContextTestExecutionListener@6f603e89, org.springframework.boot.test.autoconfigure.restdocs.RestDocsTestExecutionListener@2756c0a7, org.springframework.boot.test.autoconfigure.web.client.MockRestServiceServerResetTestExecutionListener@350ec41e, org.springframework.boot.test.autoconfigure.web.servlet.MockMvcPrintOnlyOnFailureTestExecutionListener@69637b10, org.springframework.boot.test.autoconfigure.web.servlet.WebDriverTestExecutionListener@71984c3, org.springframework.boot.test.autoconfigure.webservices.client.MockWebServiceServerTestExecutionListener@165b2f7f, org.springframework.boot.test.mock.mockito.ResetMocksTestExecutionListener@5536379e]
+18:19:18.122 [Test worker] DEBUG org.springframework.test.context.support.AbstractDirtiesContextTestExecutionListener - Before test class: context [DefaultTestContext@2c3dec30 testClass = ChargebookApplicationTests, testInstance = [null], testMethod = [null], testException = [null], mergedContextConfiguration = [WebMergedContextConfiguration@34a97744 testClass = ChargebookApplicationTests, locations = '{}', classes = '{class com.oneship.chargebook.ChargebookApplication}', contextInitializerClasses = '[]', activeProfiles = '{}', propertySourceLocations = '{}', propertySourceProperties = '{org.springframework.boot.test.context.SpringBootTestContextBootstrapper=true}', contextCustomizers = set[org.springframework.boot.test.autoconfigure.actuate.metrics.MetricsExportContextCustomizerFactory$DisableMetricExportContextCustomizer@30e868be, org.springframework.boot.test.autoconfigure.properties.PropertyMappingContextCustomizer@0, org.springframework.boot.test.autoconfigure.web.servlet.WebDriverContextCustomizerFactory$Customizer@2c4d1ac, org.springframework.boot.test.context.filter.ExcludeFilterContextCustomizer@41e68d87, org.springframework.boot.test.json.DuplicateJsonObjectContextCustomizerFactory$DuplicateJsonObjectContextCustomizer@45312be2, org.springframework.boot.test.mock.mockito.MockitoContextCustomizer@0, org.springframework.boot.test.web.client.TestRestTemplateContextCustomizer@7749bf93, org.springframework.boot.test.context.SpringBootTestArgs@1, org.springframework.boot.test.context.SpringBootTestWebEnvironment@46fa7c39], resourceBasePath = 'src/main/webapp', contextLoader = 'org.springframework.boot.test.context.SpringBootContextLoader', parent = [null]], attributes = map['org.springframework.test.context.web.ServletTestExecutionListener.activateListener' -&gt; true]], class annotated with @DirtiesContext [false] with mode [null].
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+ :: Spring Boot ::                (v2.7.3)
+
+2024-06-20 18:19:18.433  INFO 26003 --- [    Test worker] c.o.c.ChargebookApplicationTests         : Starting ChargebookApplicationTests using Java 17.0.2 on nestor-mac-pro.local with PID 26003 (started by nestor in /Users/nestor/git/chargebook)
+2024-06-20 18:19:18.434  INFO 26003 --- [    Test worker] c.o.c.ChargebookApplicationTests         : The following 1 profile is active: &quot;secret&quot;
+2024-06-20 18:19:18.981  INFO 26003 --- [    Test worker] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2024-06-20 18:19:19.024  INFO 26003 --- [    Test worker] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 37 ms. Found 2 JPA repository interfaces.
+2024-06-20 18:19:19.575  INFO 26003 --- [    Test worker] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
+2024-06-20 18:19:19.619  INFO 26003 --- [    Test worker] org.hibernate.Version                    : HHH000412: Hibernate ORM core version 5.6.10.Final
+2024-06-20 18:19:19.763  INFO 26003 --- [    Test worker] o.hibernate.annotations.common.Version   : HCANN000001: Hibernate Commons Annotations {5.1.2.Final}
+2024-06-20 18:19:19.854  INFO 26003 --- [    Test worker] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2024-06-20 18:19:20.157  INFO 26003 --- [    Test worker] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2024-06-20 18:19:20.194  INFO 26003 --- [    Test worker] org.hibernate.dialect.Dialect            : HHH000400: Using dialect: org.hibernate.dialect.H2Dialect
+2024-06-20 18:19:20.744  INFO 26003 --- [    Test worker] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000490: Using JtaPlatform implementation: [org.hibernate.engine.transaction.jta.platform.internal.NoJtaPlatform]
+2024-06-20 18:19:20.750  INFO 26003 --- [    Test worker] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2024-06-20 18:19:20.762  INFO 26003 --- [    Test worker] c.o.c.config.CardDiscountConfig          : Loaded card discounts: {BC=80, Samsung=50, Shinhan=50, Hana=0}
+2024-06-20 18:19:21.533  INFO 26003 --- [    Test worker] o.s.s.web.DefaultSecurityFilterChain     : Will secure any request with [org.springframework.security.web.session.DisableEncodeUrlFilter@4df13b7e, org.springframework.security.web.context.request.async.WebAsyncManagerIntegrationFilter@477d6f66, org.springframework.security.web.context.SecurityContextPersistenceFilter@2e76d0d3, org.springframework.security.web.header.HeaderWriterFilter@30a5a58d, org.springframework.security.web.authentication.logout.LogoutFilter@4faaff61, org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestRedirectFilter@6530a1de, org.springframework.security.oauth2.client.web.OAuth2LoginAuthenticationFilter@44723d95, org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter@2b55ea4d, org.springframework.security.web.savedrequest.RequestCacheAwareFilter@4adc3951, org.springframework.security.web.servletapi.SecurityContextHolderAwareRequestFilter@52b49891, org.springframework.security.web.authentication.AnonymousAuthenticationFilter@12b66c89, org.springframework.security.web.session.SessionManagementFilter@2dfab167, org.springframework.security.web.access.ExceptionTranslationFilter@29ce33e9, org.springframework.security.web.access.intercept.FilterSecurityInterceptor@6067e7c1]
+2024-06-20 18:19:21.568  INFO 26003 --- [    Test worker] c.o.c.config.CardDiscountConfig          : Loaded card discounts: {BC=80, Samsung=50, Shinhan=50, Hana=0}
+2024-06-20 18:19:21.787  WARN 26003 --- [    Test worker] JpaBaseConfiguration$JpaWebConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2024-06-20 18:19:22.106  INFO 26003 --- [    Test worker] o.s.b.a.h2.H2ConsoleAutoConfiguration    : H2 console available at '/h2-console'. Database available at 'jdbc:h2:file:./data/chargebook'
+2024-06-20 18:19:22.116  INFO 26003 --- [    Test worker] o.s.b.a.w.s.WelcomePageHandlerMapping    : Adding welcome page template: index
+2024-06-20 18:19:22.628  INFO 26003 --- [    Test worker] c.o.c.ChargebookApplicationTests         : Started ChargebookApplicationTests in 4.467 seconds (JVM running for 5.459)
+</pre>
+</span>
+</div>
+</div>
+<div id="footer">
+<p>
+<div>
+<label class="hidden" id="label-for-line-wrapping-toggle" for="line-wrapping-toggle">Wrap lines
+<input id="line-wrapping-toggle" type="checkbox" autocomplete="off"/>
+</label>
+</div>Generated by 
+<a href="http://www.gradle.org">Gradle 8.8</a> at Jun 20, 2024, 6:19:28 PM</p>
+</div>
+</div>
+</body>
+</html>
+==== 파일명 :  ./build/reports/tests/test/classes/com.oneship.chargebook.service.KiaServiceTest.html =====
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<meta http-equiv="x-ua-compatible" content="IE=edge"/>
+<title>Test results - KiaServiceTest</title>
+<link href="../css/base-style.css" rel="stylesheet" type="text/css"/>
+<link href="../css/style.css" rel="stylesheet" type="text/css"/>
+<script src="../js/report.js" type="text/javascript"></script>
+</head>
+<body>
+<div id="content">
+<h1>KiaServiceTest</h1>
+<div class="breadcrumbs">
+<a href="../index.html">all</a> &gt; 
+<a href="../packages/com.oneship.chargebook.service.html">com.oneship.chargebook.service</a> &gt; KiaServiceTest</div>
+<div id="summary">
+<table>
+<tr>
+<td>
+<div class="summaryGroup">
+<table>
+<tr>
+<td>
+<div class="infoBox" id="tests">
+<div class="counter">8</div>
+<p>tests</p>
+</div>
+</td>
+<td>
+<div class="infoBox" id="failures">
+<div class="counter">0</div>
+<p>failures</p>
+</div>
+</td>
+<td>
+<div class="infoBox" id="ignored">
+<div class="counter">0</div>
+<p>ignored</p>
+</div>
+</td>
+<td>
+<div class="infoBox" id="duration">
+<div class="counter">1.361s</div>
+<p>duration</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</td>
+<td>
+<div class="infoBox success" id="successRate">
+<div class="percent">100%</div>
+<p>successful</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div id="tabs">
+<ul class="tabLinks">
+<li>
+<a href="#tab0">Tests</a>
+</li>
+<li>
+<a href="#tab1">Standard output</a>
+</li>
+</ul>
+<div id="tab0" class="tab">
+<h2>Tests</h2>
+<table>
+<thead>
+<tr>
+<th>Test</th>
+<th>Duration</th>
+<th>Result</th>
+</tr>
+</thead>
+<tr>
+<td class="success">testGetAccessToken()</td>
+<td class="success">0.003s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">testGetBatteryStatus()</td>
+<td class="success">0.138s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">testGetCarlist()</td>
+<td class="success">0.139s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">testGetCharging()</td>
+<td class="success">0.298s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">testGetDte()</td>
+<td class="success">0.282s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">testGetDteJson()</td>
+<td class="success">0.228s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">testGetOdometer()</td>
+<td class="success">0.271s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">testKiaProperties()</td>
+<td class="success">0.002s</td>
+<td class="success">passed</td>
+</tr>
+</table>
+</div>
+<div id="tab1" class="tab">
+<h2>Standard output</h2>
+<span class="code">
+<pre>2024-06-20 18:19:27.463  INFO 26003 --- [    Test worker] c.oneship.chargebook.service.KiaService  : responseCode = 200
+2024-06-20 18:19:27.463  INFO 26003 --- [    Test worker] c.oneship.chargebook.service.KiaService  : responseData = {&quot;access_token&quot;:&quot;eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJwaWQiOiI1YThhMjczMWY1ZmYzMjI4MWNjYTJhNTMiLCJ1aWQiOiIwYzU2NjYzNi0yYTk1LTQyYzYtYjAxOC1mNzM2NWM2ZGNiNmQiLCJzaWQiOiJlOGVhYjM5ZS1jZDk3LTRlZWMtOWM1Yi1jMjM4Y2IwMjI1ZDIiLCJleHAiOjE3MTg5NjE1NjcsImlhdCI6MTcxODg3NTE2NywiaXNzIjoidXZvIn0.FJWdTVMoE_Mup-l5RihzW_T5HKHpYr46TMzl5So2LSPpLUxeOssW-dBxgSpNPtYj0jWtsifYup_PFJE2zIdwA_nXg--GJ2McldGbi7uuWT0N8kckfM6gvRJI4_wx1THguUtP0GCbEI6ikCXwnIgY_hSh87MkWT0TME8udgr-d623D-aQswEqzAdb_mBEZFE_wGXE4dxbHlUCJMWnrgHCSpIo1wmEHP055Ssu5NrM9bOdYfA0tN78dM7nWhfvPaue5-EM9mmNh9iw4M1WDeOmSeBSYDHmm_v-vOnnOuBEJbtLkenPnKfQ3RCXWcUfNceSBIJ7XLrJSt33wbVTu6XLZA&quot;,&quot;token_type&quot;:&quot;Bearer&quot;,&quot;expires_in&quot;:86400}
+2024-06-20 18:19:27.464  INFO 26003 --- [    Test worker] c.oneship.chargebook.service.KiaService  : accessToken = eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJwaWQiOiI1YThhMjczMWY1ZmYzMjI4MWNjYTJhNTMiLCJ1aWQiOiIwYzU2NjYzNi0yYTk1LTQyYzYtYjAxOC1mNzM2NWM2ZGNiNmQiLCJzaWQiOiJlOGVhYjM5ZS1jZDk3LTRlZWMtOWM1Yi1jMjM4Y2IwMjI1ZDIiLCJleHAiOjE3MTg5NjE1NjcsImlhdCI6MTcxODg3NTE2NywiaXNzIjoidXZvIn0.FJWdTVMoE_Mup-l5RihzW_T5HKHpYr46TMzl5So2LSPpLUxeOssW-dBxgSpNPtYj0jWtsifYup_PFJE2zIdwA_nXg--GJ2McldGbi7uuWT0N8kckfM6gvRJI4_wx1THguUtP0GCbEI6ikCXwnIgY_hSh87MkWT0TME8udgr-d623D-aQswEqzAdb_mBEZFE_wGXE4dxbHlUCJMWnrgHCSpIo1wmEHP055Ssu5NrM9bOdYfA0tN78dM7nWhfvPaue5-EM9mmNh9iw4M1WDeOmSeBSYDHmm_v-vOnnOuBEJbtLkenPnKfQ3RCXWcUfNceSBIJ7XLrJSt33wbVTu6XLZA
+2024-06-20 18:19:27.465  INFO 26003 --- [    Test worker] c.oneship.chargebook.service.KiaService  : 주행 가능 거리: {&quot;value&quot;:345}
+2024-06-20 18:19:27.601  INFO 26003 --- [    Test worker] c.oneship.chargebook.service.KiaService  : responseCode = 200
+2024-06-20 18:19:27.602  INFO 26003 --- [    Test worker] c.oneship.chargebook.service.KiaService  : responseData = {&quot;access_token&quot;:&quot;eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJwaWQiOiI1YThhMjczMWY1ZmYzMjI4MWNjYTJhNTMiLCJ1aWQiOiIwYzU2NjYzNi0yYTk1LTQyYzYtYjAxOC1mNzM2NWM2ZGNiNmQiLCJzaWQiOiJlOGVhYjM5ZS1jZDk3LTRlZWMtOWM1Yi1jMjM4Y2IwMjI1ZDIiLCJleHAiOjE3MTg5NjE1NjcsImlhdCI6MTcxODg3NTE2NywiaXNzIjoidXZvIn0.FJWdTVMoE_Mup-l5RihzW_T5HKHpYr46TMzl5So2LSPpLUxeOssW-dBxgSpNPtYj0jWtsifYup_PFJE2zIdwA_nXg--GJ2McldGbi7uuWT0N8kckfM6gvRJI4_wx1THguUtP0GCbEI6ikCXwnIgY_hSh87MkWT0TME8udgr-d623D-aQswEqzAdb_mBEZFE_wGXE4dxbHlUCJMWnrgHCSpIo1wmEHP055Ssu5NrM9bOdYfA0tN78dM7nWhfvPaue5-EM9mmNh9iw4M1WDeOmSeBSYDHmm_v-vOnnOuBEJbtLkenPnKfQ3RCXWcUfNceSBIJ7XLrJSt33wbVTu6XLZA&quot;,&quot;token_type&quot;:&quot;Bearer&quot;,&quot;expires_in&quot;:86400}
+2024-06-20 18:19:27.602  INFO 26003 --- [    Test worker] c.oneship.chargebook.service.KiaService  : accessToken = eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJwaWQiOiI1YThhMjczMWY1ZmYzMjI4MWNjYTJhNTMiLCJ1aWQiOiIwYzU2NjYzNi0yYTk1LTQyYzYtYjAxOC1mNzM2NWM2ZGNiNmQiLCJzaWQiOiJlOGVhYjM5ZS1jZDk3LTRlZWMtOWM1Yi1jMjM4Y2IwMjI1ZDIiLCJleHAiOjE3MTg5NjE1NjcsImlhdCI6MTcxODg3NTE2NywiaXNzIjoidXZvIn0.FJWdTVMoE_Mup-l5RihzW_T5HKHpYr46TMzl5So2LSPpLUxeOssW-dBxgSpNPtYj0jWtsifYup_PFJE2zIdwA_nXg--GJ2McldGbi7uuWT0N8kckfM6gvRJI4_wx1THguUtP0GCbEI6ikCXwnIgY_hSh87MkWT0TME8udgr-d623D-aQswEqzAdb_mBEZFE_wGXE4dxbHlUCJMWnrgHCSpIo1wmEHP055Ssu5NrM9bOdYfA0tN78dM7nWhfvPaue5-EM9mmNh9iw4M1WDeOmSeBSYDHmm_v-vOnnOuBEJbtLkenPnKfQ3RCXWcUfNceSBIJ7XLrJSt33wbVTu6XLZA
+2024-06-20 18:19:27.755  INFO 26003 --- [    Test worker] c.oneship.chargebook.service.KiaService  : responseCode = 200
+2024-06-20 18:19:27.755  INFO 26003 --- [    Test worker] c.oneship.chargebook.service.KiaService  : responseData = {&quot;access_token&quot;:&quot;eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJwaWQiOiI1YThhMjczMWY1ZmYzMjI4MWNjYTJhNTMiLCJ1aWQiOiIwYzU2NjYzNi0yYTk1LTQyYzYtYjAxOC1mNzM2NWM2ZGNiNmQiLCJzaWQiOiJlOGVhYjM5ZS1jZDk3LTRlZWMtOWM1Yi1jMjM4Y2IwMjI1ZDIiLCJleHAiOjE3MTg5NjE1NjcsImlhdCI6MTcxODg3NTE2NywiaXNzIjoidXZvIn0.FJWdTVMoE_Mup-l5RihzW_T5HKHpYr46TMzl5So2LSPpLUxeOssW-dBxgSpNPtYj0jWtsifYup_PFJE2zIdwA_nXg--GJ2McldGbi7uuWT0N8kckfM6gvRJI4_wx1THguUtP0GCbEI6ikCXwnIgY_hSh87MkWT0TME8udgr-d623D-aQswEqzAdb_mBEZFE_wGXE4dxbHlUCJMWnrgHCSpIo1wmEHP055Ssu5NrM9bOdYfA0tN78dM7nWhfvPaue5-EM9mmNh9iw4M1WDeOmSeBSYDHmm_v-vOnnOuBEJbtLkenPnKfQ3RCXWcUfNceSBIJ7XLrJSt33wbVTu6XLZA&quot;,&quot;token_type&quot;:&quot;Bearer&quot;,&quot;expires_in&quot;:86400}
+2024-06-20 18:19:27.755  INFO 26003 --- [    Test worker] c.oneship.chargebook.service.KiaService  : accessToken = eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJwaWQiOiI1YThhMjczMWY1ZmYzMjI4MWNjYTJhNTMiLCJ1aWQiOiIwYzU2NjYzNi0yYTk1LTQyYzYtYjAxOC1mNzM2NWM2ZGNiNmQiLCJzaWQiOiJlOGVhYjM5ZS1jZDk3LTRlZWMtOWM1Yi1jMjM4Y2IwMjI1ZDIiLCJleHAiOjE3MTg5NjE1NjcsImlhdCI6MTcxODg3NTE2NywiaXNzIjoidXZvIn0.FJWdTVMoE_Mup-l5RihzW_T5HKHpYr46TMzl5So2LSPpLUxeOssW-dBxgSpNPtYj0jWtsifYup_PFJE2zIdwA_nXg--GJ2McldGbi7uuWT0N8kckfM6gvRJI4_wx1THguUtP0GCbEI6ikCXwnIgY_hSh87MkWT0TME8udgr-d623D-aQswEqzAdb_mBEZFE_wGXE4dxbHlUCJMWnrgHCSpIo1wmEHP055Ssu5NrM9bOdYfA0tN78dM7nWhfvPaue5-EM9mmNh9iw4M1WDeOmSeBSYDHmm_v-vOnnOuBEJbtLkenPnKfQ3RCXWcUfNceSBIJ7XLrJSt33wbVTu6XLZA
+2024-06-20 18:19:27.756  INFO 26003 --- [    Test worker] c.oneship.chargebook.service.KiaService  : 충전 상태: {&quot;soc&quot;:78}
+2024-06-20 18:19:27.894  INFO 26003 --- [    Test worker] c.oneship.chargebook.service.KiaService  : responseCode = 200
+2024-06-20 18:19:27.894  INFO 26003 --- [    Test worker] c.oneship.chargebook.service.KiaService  : responseData = {&quot;access_token&quot;:&quot;eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJwaWQiOiI1YThhMjczMWY1ZmYzMjI4MWNjYTJhNTMiLCJ1aWQiOiIwYzU2NjYzNi0yYTk1LTQyYzYtYjAxOC1mNzM2NWM2ZGNiNmQiLCJzaWQiOiJlOGVhYjM5ZS1jZDk3LTRlZWMtOWM1Yi1jMjM4Y2IwMjI1ZDIiLCJleHAiOjE3MTg5NjE1NjgsImlhdCI6MTcxODg3NTE2OCwiaXNzIjoidXZvIn0.OzxvFmlzuzjl8Akiffd-LncHtr_F5Oez8I4kJEsEl66egjQvIQMx4AktuCAAAIaKZ3W3VgYJwlPZ96WRuj-P_SSlXxI8f81wW1cguy7Rgk4lTyeqdgmht1QvM1RfWqrro87nKR3-qhvRKj262TlLTeU7-LfPM5zEQCDiJ6MDeRS0WnVwQrDAmzBeJELClttFqbDtx7ELn3Bo4fnMpHtTEBcSZ3lox0t7vyyQ0GhkGB6FTKWqguEUqP1oqAFoS__3RFGwcB4jeRw2DllfbRfhG7VAdUU6vRrW3Sf1a1FRCm5E72dZjgTCWqh-97OsywV_Lpb_ifaAqmWPZFaIm_XflQ&quot;,&quot;token_type&quot;:&quot;Bearer&quot;,&quot;expires_in&quot;:86400}
+2024-06-20 18:19:27.894  INFO 26003 --- [    Test worker] c.oneship.chargebook.service.KiaService  : accessToken = eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJwaWQiOiI1YThhMjczMWY1ZmYzMjI4MWNjYTJhNTMiLCJ1aWQiOiIwYzU2NjYzNi0yYTk1LTQyYzYtYjAxOC1mNzM2NWM2ZGNiNmQiLCJzaWQiOiJlOGVhYjM5ZS1jZDk3LTRlZWMtOWM1Yi1jMjM4Y2IwMjI1ZDIiLCJleHAiOjE3MTg5NjE1NjgsImlhdCI6MTcxODg3NTE2OCwiaXNzIjoidXZvIn0.OzxvFmlzuzjl8Akiffd-LncHtr_F5Oez8I4kJEsEl66egjQvIQMx4AktuCAAAIaKZ3W3VgYJwlPZ96WRuj-P_SSlXxI8f81wW1cguy7Rgk4lTyeqdgmht1QvM1RfWqrro87nKR3-qhvRKj262TlLTeU7-LfPM5zEQCDiJ6MDeRS0WnVwQrDAmzBeJELClttFqbDtx7ELn3Bo4fnMpHtTEBcSZ3lox0t7vyyQ0GhkGB6FTKWqguEUqP1oqAFoS__3RFGwcB4jeRw2DllfbRfhG7VAdUU6vRrW3Sf1a1FRCm5E72dZjgTCWqh-97OsywV_Lpb_ifaAqmWPZFaIm_XflQ
+2024-06-20 18:19:28.034  INFO 26003 --- [    Test worker] c.oneship.chargebook.service.KiaService  : responseCode = 200
+2024-06-20 18:19:28.035  INFO 26003 --- [    Test worker] c.oneship.chargebook.service.KiaService  : responseData = {&quot;access_token&quot;:&quot;eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJwaWQiOiI1YThhMjczMWY1ZmYzMjI4MWNjYTJhNTMiLCJ1aWQiOiIwYzU2NjYzNi0yYTk1LTQyYzYtYjAxOC1mNzM2NWM2ZGNiNmQiLCJzaWQiOiJlOGVhYjM5ZS1jZDk3LTRlZWMtOWM1Yi1jMjM4Y2IwMjI1ZDIiLCJleHAiOjE3MTg5NjE1NjgsImlhdCI6MTcxODg3NTE2OCwiaXNzIjoidXZvIn0.OzxvFmlzuzjl8Akiffd-LncHtr_F5Oez8I4kJEsEl66egjQvIQMx4AktuCAAAIaKZ3W3VgYJwlPZ96WRuj-P_SSlXxI8f81wW1cguy7Rgk4lTyeqdgmht1QvM1RfWqrro87nKR3-qhvRKj262TlLTeU7-LfPM5zEQCDiJ6MDeRS0WnVwQrDAmzBeJELClttFqbDtx7ELn3Bo4fnMpHtTEBcSZ3lox0t7vyyQ0GhkGB6FTKWqguEUqP1oqAFoS__3RFGwcB4jeRw2DllfbRfhG7VAdUU6vRrW3Sf1a1FRCm5E72dZjgTCWqh-97OsywV_Lpb_ifaAqmWPZFaIm_XflQ&quot;,&quot;token_type&quot;:&quot;Bearer&quot;,&quot;expires_in&quot;:86400}
+2024-06-20 18:19:28.035  INFO 26003 --- [    Test worker] c.oneship.chargebook.service.KiaService  : accessToken = eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJwaWQiOiI1YThhMjczMWY1ZmYzMjI4MWNjYTJhNTMiLCJ1aWQiOiIwYzU2NjYzNi0yYTk1LTQyYzYtYjAxOC1mNzM2NWM2ZGNiNmQiLCJzaWQiOiJlOGVhYjM5ZS1jZDk3LTRlZWMtOWM1Yi1jMjM4Y2IwMjI1ZDIiLCJleHAiOjE3MTg5NjE1NjgsImlhdCI6MTcxODg3NTE2OCwiaXNzIjoidXZvIn0.OzxvFmlzuzjl8Akiffd-LncHtr_F5Oez8I4kJEsEl66egjQvIQMx4AktuCAAAIaKZ3W3VgYJwlPZ96WRuj-P_SSlXxI8f81wW1cguy7Rgk4lTyeqdgmht1QvM1RfWqrro87nKR3-qhvRKj262TlLTeU7-LfPM5zEQCDiJ6MDeRS0WnVwQrDAmzBeJELClttFqbDtx7ELn3Bo4fnMpHtTEBcSZ3lox0t7vyyQ0GhkGB6FTKWqguEUqP1oqAFoS__3RFGwcB4jeRw2DllfbRfhG7VAdUU6vRrW3Sf1a1FRCm5E72dZjgTCWqh-97OsywV_Lpb_ifaAqmWPZFaIm_XflQ
+2024-06-20 18:19:28.035  INFO 26003 --- [    Test worker] c.oneship.chargebook.service.KiaService  : 누적 운행 거리: {&quot;odometers&quot;:[{&quot;value&quot;:6968}]}
+2024-06-20 18:19:28.175  INFO 26003 --- [    Test worker] c.oneship.chargebook.service.KiaService  : responseCode = 200
+2024-06-20 18:19:28.176  INFO 26003 --- [    Test worker] c.oneship.chargebook.service.KiaService  : responseData = {&quot;access_token&quot;:&quot;eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJwaWQiOiI1YThhMjczMWY1ZmYzMjI4MWNjYTJhNTMiLCJ1aWQiOiIwYzU2NjYzNi0yYTk1LTQyYzYtYjAxOC1mNzM2NWM2ZGNiNmQiLCJzaWQiOiJlOGVhYjM5ZS1jZDk3LTRlZWMtOWM1Yi1jMjM4Y2IwMjI1ZDIiLCJleHAiOjE3MTg5NjE1NjgsImlhdCI6MTcxODg3NTE2OCwiaXNzIjoidXZvIn0.OzxvFmlzuzjl8Akiffd-LncHtr_F5Oez8I4kJEsEl66egjQvIQMx4AktuCAAAIaKZ3W3VgYJwlPZ96WRuj-P_SSlXxI8f81wW1cguy7Rgk4lTyeqdgmht1QvM1RfWqrro87nKR3-qhvRKj262TlLTeU7-LfPM5zEQCDiJ6MDeRS0WnVwQrDAmzBeJELClttFqbDtx7ELn3Bo4fnMpHtTEBcSZ3lox0t7vyyQ0GhkGB6FTKWqguEUqP1oqAFoS__3RFGwcB4jeRw2DllfbRfhG7VAdUU6vRrW3Sf1a1FRCm5E72dZjgTCWqh-97OsywV_Lpb_ifaAqmWPZFaIm_XflQ&quot;,&quot;token_type&quot;:&quot;Bearer&quot;,&quot;expires_in&quot;:86400}
+2024-06-20 18:19:28.176  INFO 26003 --- [    Test worker] c.oneship.chargebook.service.KiaService  : accessToken = eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJwaWQiOiI1YThhMjczMWY1ZmYzMjI4MWNjYTJhNTMiLCJ1aWQiOiIwYzU2NjYzNi0yYTk1LTQyYzYtYjAxOC1mNzM2NWM2ZGNiNmQiLCJzaWQiOiJlOGVhYjM5ZS1jZDk3LTRlZWMtOWM1Yi1jMjM4Y2IwMjI1ZDIiLCJleHAiOjE3MTg5NjE1NjgsImlhdCI6MTcxODg3NTE2OCwiaXNzIjoidXZvIn0.OzxvFmlzuzjl8Akiffd-LncHtr_F5Oez8I4kJEsEl66egjQvIQMx4AktuCAAAIaKZ3W3VgYJwlPZ96WRuj-P_SSlXxI8f81wW1cguy7Rgk4lTyeqdgmht1QvM1RfWqrro87nKR3-qhvRKj262TlLTeU7-LfPM5zEQCDiJ6MDeRS0WnVwQrDAmzBeJELClttFqbDtx7ELn3Bo4fnMpHtTEBcSZ3lox0t7vyyQ0GhkGB6FTKWqguEUqP1oqAFoS__3RFGwcB4jeRw2DllfbRfhG7VAdUU6vRrW3Sf1a1FRCm5E72dZjgTCWqh-97OsywV_Lpb_ifaAqmWPZFaIm_XflQ
+2024-06-20 18:19:28.176  INFO 26003 --- [    Test worker] c.oneship.chargebook.service.KiaService  : 차량 리스트: {&quot;carId&quot;:&quot;65169010-30e1-4c7e-91e4-f747091e2268&quot;}
+2024-06-20 18:19:28.314  INFO 26003 --- [    Test worker] c.oneship.chargebook.service.KiaService  : responseCode = 200
+2024-06-20 18:19:28.315  INFO 26003 --- [    Test worker] c.oneship.chargebook.service.KiaService  : responseData = {&quot;access_token&quot;:&quot;eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJwaWQiOiI1YThhMjczMWY1ZmYzMjI4MWNjYTJhNTMiLCJ1aWQiOiIwYzU2NjYzNi0yYTk1LTQyYzYtYjAxOC1mNzM2NWM2ZGNiNmQiLCJzaWQiOiJlOGVhYjM5ZS1jZDk3LTRlZWMtOWM1Yi1jMjM4Y2IwMjI1ZDIiLCJleHAiOjE3MTg5NjE1NjgsImlhdCI6MTcxODg3NTE2OCwiaXNzIjoidXZvIn0.OzxvFmlzuzjl8Akiffd-LncHtr_F5Oez8I4kJEsEl66egjQvIQMx4AktuCAAAIaKZ3W3VgYJwlPZ96WRuj-P_SSlXxI8f81wW1cguy7Rgk4lTyeqdgmht1QvM1RfWqrro87nKR3-qhvRKj262TlLTeU7-LfPM5zEQCDiJ6MDeRS0WnVwQrDAmzBeJELClttFqbDtx7ELn3Bo4fnMpHtTEBcSZ3lox0t7vyyQ0GhkGB6FTKWqguEUqP1oqAFoS__3RFGwcB4jeRw2DllfbRfhG7VAdUU6vRrW3Sf1a1FRCm5E72dZjgTCWqh-97OsywV_Lpb_ifaAqmWPZFaIm_XflQ&quot;,&quot;token_type&quot;:&quot;Bearer&quot;,&quot;expires_in&quot;:86400}
+2024-06-20 18:19:28.315  INFO 26003 --- [    Test worker] c.oneship.chargebook.service.KiaService  : accessToken = eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJwaWQiOiI1YThhMjczMWY1ZmYzMjI4MWNjYTJhNTMiLCJ1aWQiOiIwYzU2NjYzNi0yYTk1LTQyYzYtYjAxOC1mNzM2NWM2ZGNiNmQiLCJzaWQiOiJlOGVhYjM5ZS1jZDk3LTRlZWMtOWM1Yi1jMjM4Y2IwMjI1ZDIiLCJleHAiOjE3MTg5NjE1NjgsImlhdCI6MTcxODg3NTE2OCwiaXNzIjoidXZvIn0.OzxvFmlzuzjl8Akiffd-LncHtr_F5Oez8I4kJEsEl66egjQvIQMx4AktuCAAAIaKZ3W3VgYJwlPZ96WRuj-P_SSlXxI8f81wW1cguy7Rgk4lTyeqdgmht1QvM1RfWqrro87nKR3-qhvRKj262TlLTeU7-LfPM5zEQCDiJ6MDeRS0WnVwQrDAmzBeJELClttFqbDtx7ELn3Bo4fnMpHtTEBcSZ3lox0t7vyyQ0GhkGB6FTKWqguEUqP1oqAFoS__3RFGwcB4jeRw2DllfbRfhG7VAdUU6vRrW3Sf1a1FRCm5E72dZjgTCWqh-97OsywV_Lpb_ifaAqmWPZFaIm_XflQ
+2024-06-20 18:19:28.316  INFO 26003 --- [    Test worker] c.oneship.chargebook.service.KiaService  : 전기차 배터리 잔량: {&quot;soc&quot;:78}
+2024-06-20 18:19:28.316  INFO 26003 --- [    Test worker] c.oneship.chargebook.service.KiaService  : 전기차 배터리 잔량: {&quot;soc&quot;:78}
+2024-06-20 18:19:28.320  INFO 26003 --- [    Test worker] c.oneship.chargebook.service.KiaService  : accessToken = test_access_token
+2024-06-20 18:19:28.461  INFO 26003 --- [    Test worker] c.oneship.chargebook.service.KiaService  : responseCode = 200
+2024-06-20 18:19:28.461  INFO 26003 --- [    Test worker] c.oneship.chargebook.service.KiaService  : responseData = {&quot;access_token&quot;:&quot;eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJwaWQiOiI1YThhMjczMWY1ZmYzMjI4MWNjYTJhNTMiLCJ1aWQiOiIwYzU2NjYzNi0yYTk1LTQyYzYtYjAxOC1mNzM2NWM2ZGNiNmQiLCJzaWQiOiJlOGVhYjM5ZS1jZDk3LTRlZWMtOWM1Yi1jMjM4Y2IwMjI1ZDIiLCJleHAiOjE3MTg5NjE1NjgsImlhdCI6MTcxODg3NTE2OCwiaXNzIjoidXZvIn0.OzxvFmlzuzjl8Akiffd-LncHtr_F5Oez8I4kJEsEl66egjQvIQMx4AktuCAAAIaKZ3W3VgYJwlPZ96WRuj-P_SSlXxI8f81wW1cguy7Rgk4lTyeqdgmht1QvM1RfWqrro87nKR3-qhvRKj262TlLTeU7-LfPM5zEQCDiJ6MDeRS0WnVwQrDAmzBeJELClttFqbDtx7ELn3Bo4fnMpHtTEBcSZ3lox0t7vyyQ0GhkGB6FTKWqguEUqP1oqAFoS__3RFGwcB4jeRw2DllfbRfhG7VAdUU6vRrW3Sf1a1FRCm5E72dZjgTCWqh-97OsywV_Lpb_ifaAqmWPZFaIm_XflQ&quot;,&quot;token_type&quot;:&quot;Bearer&quot;,&quot;expires_in&quot;:86400}
+2024-06-20 18:19:28.462  INFO 26003 --- [    Test worker] c.oneship.chargebook.service.KiaService  : accessToken = eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJwaWQiOiI1YThhMjczMWY1ZmYzMjI4MWNjYTJhNTMiLCJ1aWQiOiIwYzU2NjYzNi0yYTk1LTQyYzYtYjAxOC1mNzM2NWM2ZGNiNmQiLCJzaWQiOiJlOGVhYjM5ZS1jZDk3LTRlZWMtOWM1Yi1jMjM4Y2IwMjI1ZDIiLCJleHAiOjE3MTg5NjE1NjgsImlhdCI6MTcxODg3NTE2OCwiaXNzIjoidXZvIn0.OzxvFmlzuzjl8Akiffd-LncHtr_F5Oez8I4kJEsEl66egjQvIQMx4AktuCAAAIaKZ3W3VgYJwlPZ96WRuj-P_SSlXxI8f81wW1cguy7Rgk4lTyeqdgmht1QvM1RfWqrro87nKR3-qhvRKj262TlLTeU7-LfPM5zEQCDiJ6MDeRS0WnVwQrDAmzBeJELClttFqbDtx7ELn3Bo4fnMpHtTEBcSZ3lox0t7vyyQ0GhkGB6FTKWqguEUqP1oqAFoS__3RFGwcB4jeRw2DllfbRfhG7VAdUU6vRrW3Sf1a1FRCm5E72dZjgTCWqh-97OsywV_Lpb_ifaAqmWPZFaIm_XflQ
+2024-06-20 18:19:28.601  INFO 26003 --- [    Test worker] c.oneship.chargebook.service.KiaService  : responseCode = 200
+2024-06-20 18:19:28.602  INFO 26003 --- [    Test worker] c.oneship.chargebook.service.KiaService  : responseData = {&quot;access_token&quot;:&quot;eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJwaWQiOiI1YThhMjczMWY1ZmYzMjI4MWNjYTJhNTMiLCJ1aWQiOiIwYzU2NjYzNi0yYTk1LTQyYzYtYjAxOC1mNzM2NWM2ZGNiNmQiLCJzaWQiOiJlOGVhYjM5ZS1jZDk3LTRlZWMtOWM1Yi1jMjM4Y2IwMjI1ZDIiLCJleHAiOjE3MTg5NjE1NjgsImlhdCI6MTcxODg3NTE2OCwiaXNzIjoidXZvIn0.OzxvFmlzuzjl8Akiffd-LncHtr_F5Oez8I4kJEsEl66egjQvIQMx4AktuCAAAIaKZ3W3VgYJwlPZ96WRuj-P_SSlXxI8f81wW1cguy7Rgk4lTyeqdgmht1QvM1RfWqrro87nKR3-qhvRKj262TlLTeU7-LfPM5zEQCDiJ6MDeRS0WnVwQrDAmzBeJELClttFqbDtx7ELn3Bo4fnMpHtTEBcSZ3lox0t7vyyQ0GhkGB6FTKWqguEUqP1oqAFoS__3RFGwcB4jeRw2DllfbRfhG7VAdUU6vRrW3Sf1a1FRCm5E72dZjgTCWqh-97OsywV_Lpb_ifaAqmWPZFaIm_XflQ&quot;,&quot;token_type&quot;:&quot;Bearer&quot;,&quot;expires_in&quot;:86400}
+2024-06-20 18:19:28.602  INFO 26003 --- [    Test worker] c.oneship.chargebook.service.KiaService  : accessToken = eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJwaWQiOiI1YThhMjczMWY1ZmYzMjI4MWNjYTJhNTMiLCJ1aWQiOiIwYzU2NjYzNi0yYTk1LTQyYzYtYjAxOC1mNzM2NWM2ZGNiNmQiLCJzaWQiOiJlOGVhYjM5ZS1jZDk3LTRlZWMtOWM1Yi1jMjM4Y2IwMjI1ZDIiLCJleHAiOjE3MTg5NjE1NjgsImlhdCI6MTcxODg3NTE2OCwiaXNzIjoidXZvIn0.OzxvFmlzuzjl8Akiffd-LncHtr_F5Oez8I4kJEsEl66egjQvIQMx4AktuCAAAIaKZ3W3VgYJwlPZ96WRuj-P_SSlXxI8f81wW1cguy7Rgk4lTyeqdgmht1QvM1RfWqrro87nKR3-qhvRKj262TlLTeU7-LfPM5zEQCDiJ6MDeRS0WnVwQrDAmzBeJELClttFqbDtx7ELn3Bo4fnMpHtTEBcSZ3lox0t7vyyQ0GhkGB6FTKWqguEUqP1oqAFoS__3RFGwcB4jeRw2DllfbRfhG7VAdUU6vRrW3Sf1a1FRCm5E72dZjgTCWqh-97OsywV_Lpb_ifaAqmWPZFaIm_XflQ
+2024-06-20 18:19:28.603  INFO 26003 --- [    Test worker] c.oneship.chargebook.service.KiaService  : 주행 가능 거리: {&quot;value&quot;:345}
+</pre>
+</span>
+</div>
+</div>
+<div id="footer">
+<p>
+<div>
+<label class="hidden" id="label-for-line-wrapping-toggle" for="line-wrapping-toggle">Wrap lines
+<input id="line-wrapping-toggle" type="checkbox" autocomplete="off"/>
+</label>
+</div>Generated by 
+<a href="http://www.gradle.org">Gradle 8.8</a> at Jun 20, 2024, 6:19:28 PM</p>
+</div>
+</div>
+</body>
+</html>
+==== 파일명 :  ./build/reports/tests/test/packages/com.oneship.chargebook.service.html =====
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<meta http-equiv="x-ua-compatible" content="IE=edge"/>
+<title>Test results - Package com.oneship.chargebook.service</title>
+<link href="../css/base-style.css" rel="stylesheet" type="text/css"/>
+<link href="../css/style.css" rel="stylesheet" type="text/css"/>
+<script src="../js/report.js" type="text/javascript"></script>
+</head>
+<body>
+<div id="content">
+<h1>Package com.oneship.chargebook.service</h1>
+<div class="breadcrumbs">
+<a href="../index.html">all</a> &gt; com.oneship.chargebook.service</div>
+<div id="summary">
+<table>
+<tr>
+<td>
+<div class="summaryGroup">
+<table>
+<tr>
+<td>
+<div class="infoBox" id="tests">
+<div class="counter">14</div>
+<p>tests</p>
+</div>
+</td>
+<td>
+<div class="infoBox" id="failures">
+<div class="counter">0</div>
+<p>failures</p>
+</div>
+</td>
+<td>
+<div class="infoBox" id="ignored">
+<div class="counter">0</div>
+<p>ignored</p>
+</div>
+</td>
+<td>
+<div class="infoBox" id="duration">
+<div class="counter">4.482s</div>
+<p>duration</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</td>
+<td>
+<div class="infoBox success" id="successRate">
+<div class="percent">100%</div>
+<p>successful</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div id="tabs">
+<ul class="tabLinks">
+<li>
+<a href="#tab0">Classes</a>
+</li>
+</ul>
+<div id="tab0" class="tab">
+<h2>Classes</h2>
+<table>
+<thead>
+<tr>
+<th>Class</th>
+<th>Tests</th>
+<th>Failures</th>
+<th>Ignored</th>
+<th>Duration</th>
+<th>Success rate</th>
+</tr>
+</thead>
+<tr>
+<td class="success">
+<a href="../classes/com.oneship.chargebook.service.KiaServiceIntegrationTest.html">KiaServiceIntegrationTest</a>
+</td>
+<td>6</td>
+<td>0</td>
+<td>0</td>
+<td>3.121s</td>
+<td class="success">100%</td>
+</tr>
+<tr>
+<td class="success">
+<a href="../classes/com.oneship.chargebook.service.KiaServiceTest.html">KiaServiceTest</a>
+</td>
+<td>8</td>
+<td>0</td>
+<td>0</td>
+<td>1.361s</td>
+<td class="success">100%</td>
+</tr>
+</table>
+</div>
+</div>
+<div id="footer">
+<p>
+<div>
+<label class="hidden" id="label-for-line-wrapping-toggle" for="line-wrapping-toggle">Wrap lines
+<input id="line-wrapping-toggle" type="checkbox" autocomplete="off"/>
+</label>
+</div>Generated by 
+<a href="http://www.gradle.org">Gradle 8.8</a> at Jun 20, 2024, 6:19:28 PM</p>
+</div>
+</div>
+</body>
+</html>
+==== 파일명 :  ./build/reports/tests/test/packages/com.oneship.chargebook.html =====
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<meta http-equiv="x-ua-compatible" content="IE=edge"/>
+<title>Test results - Package com.oneship.chargebook</title>
+<link href="../css/base-style.css" rel="stylesheet" type="text/css"/>
+<link href="../css/style.css" rel="stylesheet" type="text/css"/>
+<script src="../js/report.js" type="text/javascript"></script>
+</head>
+<body>
+<div id="content">
+<h1>Package com.oneship.chargebook</h1>
+<div class="breadcrumbs">
+<a href="../index.html">all</a> &gt; com.oneship.chargebook</div>
+<div id="summary">
+<table>
+<tr>
+<td>
+<div class="summaryGroup">
+<table>
+<tr>
+<td>
+<div class="infoBox" id="tests">
+<div class="counter">1</div>
+<p>tests</p>
+</div>
+</td>
+<td>
+<div class="infoBox" id="failures">
+<div class="counter">0</div>
+<p>failures</p>
+</div>
+</td>
+<td>
+<div class="infoBox" id="ignored">
+<div class="counter">0</div>
+<p>ignored</p>
+</div>
+</td>
+<td>
+<div class="infoBox" id="duration">
+<div class="counter">0.201s</div>
+<p>duration</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</td>
+<td>
+<div class="infoBox success" id="successRate">
+<div class="percent">100%</div>
+<p>successful</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div id="tabs">
+<ul class="tabLinks">
+<li>
+<a href="#tab0">Classes</a>
+</li>
+</ul>
+<div id="tab0" class="tab">
+<h2>Classes</h2>
+<table>
+<thead>
+<tr>
+<th>Class</th>
+<th>Tests</th>
+<th>Failures</th>
+<th>Ignored</th>
+<th>Duration</th>
+<th>Success rate</th>
+</tr>
+</thead>
+<tr>
+<td class="success">
+<a href="../classes/com.oneship.chargebook.ChargebookApplicationTests.html">ChargebookApplicationTests</a>
+</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0.201s</td>
+<td class="success">100%</td>
+</tr>
+</table>
+</div>
+</div>
+<div id="footer">
+<p>
+<div>
+<label class="hidden" id="label-for-line-wrapping-toggle" for="line-wrapping-toggle">Wrap lines
+<input id="line-wrapping-toggle" type="checkbox" autocomplete="off"/>
+</label>
+</div>Generated by 
+<a href="http://www.gradle.org">Gradle 8.8</a> at Jun 20, 2024, 6:19:28 PM</p>
+</div>
+</div>
+</body>
+</html>
+==== 파일명 :  ./src/main/resources/templates/index.html =====
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>EV 충전</title>
+    <link rel="icon" href="/favicon.ico" type="image/x-icon" />
+    <!-- Materialize CSS -->
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css"
+      rel="stylesheet"
+    />
+    <!-- Custom Styles -->
+    <link href="/css/styles.css" rel="stylesheet" />
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <h1>EV 충전</h1>
+        <div class="header-right">
+          <form
+            id="monthForm"
+            action="/"
+            method="get"
+            class="input-field month-selector"
+          >
+            <input
+              type="month"
+              id="month"
+              name="month"
+              th:value="${selectedMonth}"
+              onchange="document.getElementById('monthForm').submit();"
+            />
+          </form>
+          <ul id="userDropdown" class="dropdown-content">
+            <li><a href="#">Profile</a></li>
+            <li><a href="/kia/sso">Kia 연동</a></li>
+            <!-- Kia 연동 메뉴 추가 -->
+            <li class="divider" tabindex="-1"></li>
+            <li><a href="/logout">Logout</a></li>
+          </ul>
+          <a class="btn dropdown-trigger" href="#" data-target="userDropdown">
+            <img
+              src="https://via.placeholder.com/30"
+              class="circle"
+              alt="User Avatar"
+            />
+            <span th:text="${#authentication.name}"></span>
+          </a>
+        </div>
+      </div>
+      <!-- 기존 테이블 및 기타 콘텐츠 -->
+      <div class="summary-tables">
+        <div class="summary-table">
+          <h5>카드별 청구금액 총합</h5>
+          <table class="striped responsive-table">
+            <thead>
+              <tr>
+                <th>카드</th>
+                <th>총 청구금액</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr th:each="cardSummary : ${totalPriceByCard.entrySet()}">
+                <td
+                  th:text="${cardSummary.key == 'BC' ? '비씨카드' : cardSummary.key == 'Samsung' ? '삼성카드' : cardSummary.key == 'Shinhan' ? '신한카드' : cardSummary.key == 'Hana' ? '하나카드' : cardSummary.key}"
+                ></td>
+                <td th:text="${cardSummary.value}"></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="summary-table">
+          <h5>사업자별 충전량 총합</h5>
+          <table class="striped responsive-table">
+            <thead>
+              <tr>
+                <th>사업자</th>
+                <th>총 충전량</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr th:each="companySummary : ${totalChargeByCompany.entrySet()}">
+                <td th:text="${companySummary.key}"></td>
+                <td th:text="${companySummary.value}"></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div th:if="${#lists.isEmpty(chargeDataList)}">
+        <p>충전기록이 없습니다</p>
+      </div>
+      <div class="table-responsive">
+        <table class="striped responsive-table">
+          <thead>
+            <tr>
+              <th>날짜</th>
+              <th class="hide-on-small-only">충전량</th>
+              <th>충전금액</th>
+              <th class="hide-on-small-only">단가</th>
+              <th class="hide-on-small-only">포인트 사용</th>
+              <th class="hide-on-small-only">할인후 금액</th>
+              <th class="hide-on-small-only">청구금액</th>
+              <th class="hide-on-small-only">청구단가</th>
+              <th class="hide-on-small-only">배터리 잔량</th>
+              <th class="hide-on-small-only">주행 가능 거리</th>
+              <th class="hide-on-small-only">누적주행거리</th>
+              <th>카드</th>
+              <th>사업자</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr
+              th:each="data : ${chargeDataList}"
+              th:onclick="|window.location='/edit/${data.id}'|"
+              class="clickable-row"
+            >
+              <td
+                class="date-col"
+                th:data-full="${#dates.format(data.date, 'yyyy.MM.dd')}"
+                th:data-short="${#dates.format(data.date, 'MM.dd')}"
+                th:text="${#dates.format(data.date, 'yyyy.MM.dd')}"
+              ></td>
+              <td
+                th:text="${data.amountOfCharge}"
+                class="hide-on-small-only"
+              ></td>
+              <td th:text="${data.price}"></td>
+              <td th:text="${data.unitPrice}" class="hide-on-small-only"></td>
+              <td th:text="${data.point}" class="hide-on-small-only"></td>
+              <td
+                th:text="${data.discountedPrice}"
+                class="hide-on-small-only"
+              ></td>
+              <td th:text="${data.finalPrice}" class="hide-on-small-only"></td>
+              <td
+                th:text="${data.finalUnitPrice}"
+                class="hide-on-small-only"
+              ></td>
+              <td
+                th:text="${data.batteryStatus}"
+                class="hide-on-small-only"
+              ></td>
+              <td
+                th:text="${data.drivingRange}"
+                class="hide-on-small-only"
+              ></td>
+              <td th:text="${data.distance}" class="hide-on-small-only"></td>
+              <td
+                th:text="${data.card == 'BC' ? '비씨카드' : data.card == 'Samsung' ? '삼성카드' : data.card == 'Shinhan' ? '신한카드' : data.card == 'Hana' ? '하나카드' : data.card}"
+              ></td>
+              <td th:text="${data.company}"></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="button-container">
+        <a class="btn left" href="/chart">차트 보기</a>
+        <a class="btn right" href="/input">입력</a>
+      </div>
+    </div>
+
+    <!-- Materialize JavaScript -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        var elems = document.querySelectorAll(".dropdown-trigger");
+        var instances = M.Dropdown.init(elems);
+
+        var dateCols = document.querySelectorAll(".date-col");
+        if (window.innerWidth <= 600) {
+          dateCols.forEach(function (col) {
+            col.textContent = col.getAttribute("data-short");
+          });
+        } else {
+          dateCols.forEach(function (col) {
+            col.textContent = col.getAttribute("data-full");
+          });
+        }
+      });
+
+      window.addEventListener("resize", function () {
+        var dateCols = document.querySelectorAll(".date-col");
+        if (window.innerWidth <= 600) {
+          dateCols.forEach(function (col) {
+            col.textContent = col.getAttribute("data-short");
+          });
+        } else {
+          dateCols.forEach(function (col) {
+            col.textContent = col.getAttribute("data-full");
+          });
+        }
+      });
+    </script>
+  </body>
+</html>
+==== 파일명 :  ./src/main/resources/templates/register.html =====
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Register</title>
+    <link
+      rel="stylesheet"
+      href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
+    />
+  </head>
+  <body>
+    <div class="container mt-5">
+      <h2>Register</h2>
+      <form action="/register" method="post" th:object="${user}">
+        <div class="form-group">
+          <label for="username">Username:</label>
+          <input
+            type="text"
+            class="form-control"
+            id="username"
+            th:field="*{username}"
+          />
+        </div>
+        <div class="form-group">
+          <label for="password">Password:</label>
+          <input
+            type="password"
+            class="form-control"
+            id="password"
+            th:field="*{password}"
+          />
+        </div>
+        <button type="submit" class="btn btn-primary">Register</button>
+      </form>
+    </div>
+  </body>
+</html>
+==== 파일명 :  ./src/main/resources/templates/login.html =====
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>로그인</title>
+    <!-- Materialize CSS -->
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css"
+      rel="stylesheet"
+    />
+    <style>
+      body {
+        display: flex;
+        min-height: 100vh;
+        flex-direction: column;
+      }
+
+      main {
+        flex: 1 0 auto;
+      }
+
+      .container {
+        max-width: 600px;
+        margin-top: 50px;
+      }
+
+      .card-panel {
+        padding: 32px;
+      }
+
+      .btn-large {
+        width: 100%;
+      }
+
+      .google-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: #4285f4;
+        color: white;
+      }
+
+      .google-btn img {
+        margin-right: 8px;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <div class="container">
+        <div class="row">
+          <div class="col s12 m8 offset-m2 l6 offset-l3">
+            <div class="card-panel z-depth-3">
+              <h4 class="center">로그인</h4>
+              <form action="/login" method="post">
+                <div class="input-field">
+                  <input
+                    id="username"
+                    name="username"
+                    type="text"
+                    class="validate"
+                    required
+                  />
+                  <label for="username">사용자명</label>
+                </div>
+                <div class="input-field">
+                  <input
+                    id="password"
+                    name="password"
+                    type="password"
+                    class="validate"
+                    required
+                  />
+                  <label for="password">비밀번호</label>
+                </div>
+                <div class="input-field center">
+                  <button type="submit" class="btn-large blue">로그인</button>
+                </div>
+              </form>
+              <div class="divider"></div>
+              <div class="section">
+                <a
+                  href="/oauth2/authorization/google"
+                  class="btn-large google-btn"
+                >
+                  <img
+                    src="https://upload.wikimedia.org/wikipedia/commons/4/4a/Logo_2013_Google.png"
+                    width="20"
+                    height="20"
+                    alt="Google logo"
+                  />
+                  Google로 로그인
+                </a>
+              </div>
+              <div class="center">
+                <p>계정이 없으신가요? <a href="/register">회원가입</a></p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+    <!-- Materialize JavaScript -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+  </body>
+</html>
+==== 파일명 :  ./src/main/resources/templates/chart.html =====
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>EV 충전</title>
+    <!-- Materialize CSS -->
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css"
+      rel="stylesheet"
+    />
+    <!-- Custom Styles -->
+    <link href="/css/styles.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <h1>EV 충전</h1>
+        <div class="header-right">
+          <a class="btn" href="/">메인 페이지로 돌아가기</a>
+        </div>
+      </div>
+      <canvas id="cardChart"></canvas>
+      <script>
+        var ctx = document.getElementById("cardChart").getContext("2d");
+        var cardNames = /*[[${cardNames}]]*/ []; // 서버에서 제공한 카드 이름 데이터
+        var cardPrices = /*[[${cardPrices}]]*/ []; // 서버에서 제공한 카드 가격 데이터
+
+        var cardChart = new Chart(ctx, {
+          type: "bar",
+          data: {
+            labels: cardNames,
+            datasets: [
+              {
+                label: "카드별 청구금액",
+                data: cardPrices,
+                backgroundColor: "rgba(54, 162, 235, 0.2)",
+                borderColor: "rgba(54, 162, 235, 1)",
+                borderWidth: 1,
+              },
+            ],
+          },
+          options: {
+            scales: {
+              y: {
+                beginAtZero: true,
+              },
+            },
+          },
+        });
+      </script>
+    </div>
+
+    <!-- Materialize JavaScript -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+  </body>
+</html>
+==== 파일명 :  ./src/main/resources/templates/edit.html =====
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>수정</title>
+    <!-- Materialize CSS -->
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css"
+      rel="stylesheet"
+    />
+    <!-- Custom CSS -->
+    <link href="/css/styles.css" rel="stylesheet" />
+    <style>
+      body {
+        padding: 20px;
+      }
+      .header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        position: relative;
+      }
+      .header h4 {
+        text-align: center;
+        flex-grow: 1;
+        margin: 0;
+      }
+      .header .delete-button {
+        position: absolute;
+        right: 0;
+      }
+      .button-container {
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+        margin-top: 20px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <h4>수정</h4>
+        <button
+          type="button"
+          class="btn red delete-button"
+          onclick="deleteData()"
+        >
+          삭제
+        </button>
+      </div>
+      <form
+        id="editForm"
+        th:action="@{/update}"
+        th:object="${chargeData}"
+        method="post"
+      >
+        <input type="hidden" id="id" name="id" th:value="${chargeData.id}" />
+        <div class="input-field">
+          <input
+            type="date"
+            id="date"
+            name="date"
+            th:value="${#dates.format(chargeData.date, 'yyyy-MM-dd')}"
+            autocomplete="off"
+            required
+          />
+          <label for="date" class="active">날짜</label>
+        </div>
+        <div class="input-field">
+          <select
+            id="company"
+            th:field="*{company}"
+            class="browser-default"
+            autocomplete="off"
+          >
+            <option value="한화모티브" selected>한화모티브</option>
+            <option value="SK일렉링크">SK일렉링크</option>
+            <option value="EV Infra">EV Infra</option>
+            <option value="chargev">chargev</option>
+            <option value="E-Pit">E-Pit</option>
+            <option value="파워큐브">파워큐브</option>
+            <option value="한전">한전</option>
+            <option value="환경부">환경부</option>
+            <option value="에버온">에버온</option>
+            <option value="기타">기타</option>
+          </select>
+          <label for="company" class="active">사업자</label>
+        </div>
+        <div class="input-field">
+          <input
+            type="number"
+            step="0.01"
+            id="amountOfCharge"
+            th:field="*{amountOfCharge}"
+            value="0"
+            autocomplete="off"
+            required
+          />
+          <label for="amountOfCharge" class="active">충전량</label>
+        </div>
+        <div class="input-field">
+          <input
+            type="number"
+            id="price"
+            th:field="*{price}"
+            autocomplete="off"
+            required
+          />
+          <label for="price" class="active">충전금액</label>
+        </div>
+        <div class="input-field">
+          <input
+            type="number"
+            id="point"
+            th:field="*{point}"
+            value="0"
+            autocomplete="off"
+          />
+          <label for="point" class="active">포인트 사용</label>
+        </div>
+        <div class="row">
+          <div class="input-field col s6">
+            <select
+              id="card"
+              th:field="*{card}"
+              class="browser-default"
+              autocomplete="off"
+            >
+              <option value="BC" selected>비씨카드</option>
+              <option value="Samsung">삼성카드</option>
+              <option value="Shinhan">신한카드</option>
+              <option value="Hana">하나카드</option>
+            </select>
+            <label for="card" class="active">카드</label>
+          </div>
+          <div class="input-field col s6">
+            <select
+              id="discountRate"
+              th:field="*{discountRate}"
+              class="browser-default"
+              autocomplete="off"
+            >
+              <option value="100">100%</option>
+              <option value="80">80%</option>
+              <option value="70">70%</option>
+              <option value="50">50%</option>
+              <option value="30">30%</option>
+              <option value="0">0%</option>
+            </select>
+            <label for="discountRate" class="active">할인율</label>
+          </div>
+        </div>
+        <div class="input-field">
+          <input
+            type="number"
+            id="distance"
+            th:field="*{distance}"
+            autocomplete="off"
+          />
+          <label for="distance" class="active">누적 주행거리</label>
+        </div>
+        <div class="input-field">
+          <input
+            type="number"
+            id="batteryStatus"
+            th:field="*{batteryStatus}"
+            autocomplete="off"
+            required
+          />
+          <label for="batteryStatus" class="active">배터리 잔량</label>
+        </div>
+        <div class="input-field">
+          <input
+            type="number"
+            id="drivingRange"
+            th:field="*{drivingRange}"
+            autocomplete="off"
+            required
+          />
+          <label for="drivingRange" class="active">주행 가능 거리</label>
+        </div>
+        <div class="button-container">
+          <button type="submit" class="btn">저장</button>
+          <a class="btn red" href="/">취소</a>
+        </div>
+      </form>
+    </div>
+
+    <!-- Materialize JavaScript -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        var cardSelect = document.getElementById("card");
+        cardSelect.addEventListener("change", function () {
+          fetchDiscountRate(this.value);
+        });
+
+        // 카드 기본값에 따라 할인율 자동 설정
+        if (cardSelect.value) {
+          fetchDiscountRate(cardSelect.value);
+        }
+
+        function fetchDiscountRate(cardName) {
+          fetch(`/api/getDiscountRate?cardName=${cardName}`)
+            .then((response) => response.json())
+            .then((data) => {
+              var discountRateSelect = document.getElementById("discountRate");
+              discountRateSelect.value = data.discountRate;
+              M.FormSelect.init(discountRateSelect);
+              console.log("Discount rate set to:", data.discountRate);
+            })
+            .catch((error) =>
+              console.error("Error fetching discount rate:", error)
+            );
+        }
+      });
+
+      function deleteData() {
+        var id = document.getElementById("id").value;
+        if (confirm("정말로 이 데이터를 삭제하시겠습니까?")) {
+          fetch(`/delete/${id}`, {
+            method: "DELETE",
+            headers: {
+              "Content-Type": "application/json",
+            },
+          })
+            .then((response) => {
+              if (response.ok) {
+                window.location.href = "/";
+              } else {
+                alert("데이터 삭제에 실패했습니다.");
+              }
+            })
+            .catch((error) => console.error("Error deleting data:", error));
+        }
+      }
+    </script>
+  </body>
+</html>
+==== 파일명 :  ./src/main/resources/templates/input.html =====
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>입력</title>
+    <!-- Materialize CSS -->
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css"
+      rel="stylesheet"
+    />
+    <!-- Custom CSS -->
+    <link href="/css/styles.css" rel="stylesheet" />
+  </head>
+  <body>
+    <div class="container">
+      <h4 class="title">입력</h4>
+      <form
+        id="inputForm"
+        th:action="@{/save}"
+        th:object="${chargeData}"
+        method="post"
+      >
+        <div class="input-field">
+          <input
+            type="date"
+            id="date"
+            name="date"
+            th:value="${#dates.format(today, 'yyyy-MM-dd')}"
+            autocomplete="off"
+            required
+          />
+          <label for="date" class="active">날짜</label>
+        </div>
+        <div class="input-field">
+          <select
+            id="company"
+            th:field="*{company}"
+            class="browser-default"
+            autocomplete="off"
+          >
+            <option value="한화모티브" selected>한화모티브</option>
+            <option value="SK일렉링크">SK일렉링크</option>
+            <option value="EV Infra">EV Infra</option>
+            <option value="chargev">chargev</option>
+            <option value="E-Pit">E-Pit</option>
+            <option value="파워큐브">파워큐브</option>
+            <option value="한전">한전</option>
+            <option value="환경부">환경부</option>
+            <option value="에버온">에버온</option>
+            <option value="기타">기타</option>
+          </select>
+          <label for="company" class="active">사업자</label>
+        </div>
+        <div class="input-field">
+          <input
+            type="number"
+            step="0.01"
+            id="amountOfCharge"
+            th:field="*{amountOfCharge}"
+            value="0"
+            autocomplete="off"
+            required
+          />
+          <label for="amountOfCharge" class="active">충전량</label>
+        </div>
+        <div class="input-field">
+          <input
+            type="number"
+            id="price"
+            th:field="*{price}"
+            autocomplete="off"
+            required
+          />
+          <label for="price" class="active">충전금액</label>
+        </div>
+        <div class="input-field">
+          <input
+            type="number"
+            id="point"
+            th:field="*{point}"
+            value="0"
+            autocomplete="off"
+          />
+          <label for="point" class="active">포인트 사용</label>
+        </div>
+        <div class="row">
+          <div class="input-field col s6">
+            <select
+              id="card"
+              th:field="*{card}"
+              class="browser-default"
+              autocomplete="off"
+            >
+              <option value="BC" selected>비씨카드</option>
+              <option value="Samsung">삼성카드</option>
+              <option value="Shinhan">신한카드</option>
+              <option value="Hana">하나카드</option>
+            </select>
+            <label for="card" class="active">카드</label>
+          </div>
+          <div class="input-field col s6">
+            <select
+              id="discountRate"
+              th:field="*{discountRate}"
+              class="browser-default"
+              autocomplete="off"
+            >
+              <option value="100">100%</option>
+              <option value="80">80%</option>
+              <option value="70">70%</option>
+              <option value="50">50%</option>
+              <option value="30">30%</option>
+              <option value="0">0%</option>
+            </select>
+            <label for="discountRate" class="active">할인율</label>
+          </div>
+        </div>
+        <div class="status-row">
+          <div class="status-item">
+            <span id="distance">- km</span>
+            <input type="hidden" id="distanceInput" th:field="*{distance}" />
+            <div class="status-label">누적 주행거리</div>
+          </div>
+          <div class="status-item">
+            <span id="batteryStatus">-</span>
+            <input
+              type="hidden"
+              id="batteryStatusInput"
+              th:field="*{batteryStatus}"
+            />
+            <div class="status-label">배터리 잔량</div>
+          </div>
+          <div class="status-item">
+            <span id="drivingRange">- km</span>
+            <input
+              type="hidden"
+              id="drivingRangeInput"
+              th:field="*{drivingRange}"
+            />
+            <div class="status-label">주행 가능 거리</div>
+          </div>
+          <button type="button" class="btn" onclick="fetchCarStatus()">
+            조회
+          </button>
+        </div>
+        <div class="progress">
+          <div class="indeterminate"></div>
+        </div>
+        <div class="button-container">
+          <button type="submit" class="btn">저장</button>
+          <a class="btn red" href="/">취소</a>
+        </div>
+      </form>
+    </div>
+
+    <!-- Materialize JavaScript -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+    <script>
+      function fetchCarStatus() {
+        document.querySelector(".progress").style.display = "block";
+        fetch("/api/accumulatedDistance")
+          .then((response) => response.json())
+          .then((data) => {
+            document.querySelector(".progress").style.display = "none";
+            document.getElementById("distance").innerText =
+              data.distance + " km";
+            document.getElementById("distanceInput").value = data.distance;
+            document.getElementById("batteryStatus").innerText =
+              data.batteryStatus + "%";
+            document.getElementById("batteryStatusInput").value =
+              data.batteryStatus;
+            document.getElementById("drivingRange").innerText =
+              data.drivingRange + " km";
+            document.getElementById("drivingRangeInput").value =
+              data.drivingRange;
+          })
+          .catch((error) => {
+            document.querySelector(".progress").style.display = "none";
+            console.error("Error fetching car status:", error);
+          });
+      }
+
+      document.addEventListener("DOMContentLoaded", function () {
+        var cardSelect = document.getElementById("card");
+        cardSelect.addEventListener("change", function () {
+          fetchDiscountRate(this.value);
+        });
+
+        // 카드 기본값에 따라 할인율 자동 설정
+        if (cardSelect.value) {
+          fetchDiscountRate(cardSelect.value);
+        }
+
+        // 페이지 로드 시 차량 상태 자동 조회
+        fetchCarStatus();
+
+        function fetchDiscountRate(cardName) {
+          fetch(`/api/getDiscountRate?cardName=${cardName}`)
+            .then((response) => response.json())
+            .then((data) => {
+              var discountRateSelect = document.getElementById("discountRate");
+              discountRateSelect.value = data.discountRate;
+              M.updateTextFields(); // Materialize CSS에서 label을 업데이트하는 함수 호출
+              console.log("Discount rate set to:", data.discountRate);
+            })
+            .catch((error) =>
+              console.error("Error fetching discount rate:", error)
+            );
+        }
+      });
+    </script>
+  </body>
+</html>

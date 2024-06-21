@@ -7,13 +7,11 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 
 import java.time.LocalDateTime;
-import java.util.Collections;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -34,7 +32,6 @@ class KiaServiceTest {
 
     @BeforeEach
     void setUp() {
-        MockitoAnnotations.openMocks(this);
         when(kiaProperties.getCarId()).thenReturn("65169010-30e1-4c7e-91e4-f747091e2268");
         when(kiaProperties.getRefreshToken()).thenReturn("0BOB0PMPXOANI4PJ9QARUQ");
         when(kiaProperties.getApi()).thenReturn(new KiaProperties.Api() {{
@@ -45,8 +42,11 @@ class KiaServiceTest {
         when(kiaProperties.getClientSecret()).thenReturn("oy42brpiFedstigC8i2GLu33Zie0SUq7EVaeTmHMwt0EFiLh");
 
         // 초기화 토큰 설정
-        kiaToken = new KiaToken("initialAccessToken", "initialRefreshToken", "Bearer", 86400);
-        kiaToken.setExpirationTime(LocalDateTime.now().plusSeconds(86400));
+        kiaToken = new KiaToken("userId", "initialAccessToken", "initialRefreshToken", "Bearer", 86400, LocalDateTime.now().plusSeconds(86400));
+
+        // Mock KiaService's executeApiCall method to return non-null responses
+        KiaService spyService = spy(kiaService);
+        doReturn("{\"value\":345}").when(spyService).executeApiCall(anyString(), anyString());
     }
 
     @Test
@@ -66,7 +66,7 @@ class KiaServiceTest {
         KiaService spyService = spy(kiaService);
         doReturn(expectedResponse).when(spyService).executeApiCall(anyString(), anyString());
 
-        String result = spyService.getDteJson(false);
+        String result = spyService.getDteJson("userId", false);
         assertNotNull(result);
         assertTrue(result.contains("345"));
     }
@@ -78,7 +78,7 @@ class KiaServiceTest {
         KiaService spyService = spy(kiaService);
         doReturn(expectedResponse).when(spyService).executeApiCall(anyString(), anyString());
 
-        Double result = spyService.getDte();
+        Double result = spyService.getDte("userId");
         assertEquals(345.0, result);
     }
 
@@ -89,7 +89,7 @@ class KiaServiceTest {
         KiaService spyService = spy(kiaService);
         doReturn(expectedResponse).when(spyService).executeApiCall(anyString(), anyString());
 
-        long result = spyService.getOdometer();
+        long result = spyService.getOdometer("userId");
         assertEquals(6968, result);
     }
 
@@ -100,7 +100,7 @@ class KiaServiceTest {
         KiaService spyService = spy(kiaService);
         doReturn(expectedResponse).when(spyService).executeApiCall(anyString(), anyString());
 
-        Map result = spyService.getCharging();
+        Map result = spyService.getCharging("userId");
         assertEquals(78d, result.get("soc"));
     }
 
@@ -111,7 +111,7 @@ class KiaServiceTest {
         KiaService spyService = spy(kiaService);
         doReturn(expectedResponse).when(spyService).executeApiCall(anyString(), anyString());
 
-        Object result = spyService.getBatteryStatus();
+        Object result = spyService.getBatteryStatus("userId");
         assertEquals(78d, result);
     }
 
@@ -122,7 +122,7 @@ class KiaServiceTest {
         KiaService spyService = spy(kiaService);
         doReturn(expectedResponse).when(spyService).tokenAPICall(anyString());
 
-        String result = spyService.getAccessToken();
+        String result = spyService.getAccessToken("userId");
         assertEquals("test_access_token", result);
     }
 
@@ -133,18 +133,18 @@ class KiaServiceTest {
         KiaService spyService = spy(kiaService);
         doReturn(expectedResponse).when(spyService).executeApiCall(anyString(), anyString());
 
-        boolean result = spyService.getCarlist();
+        boolean result = spyService.getCarlist("userId");
         assertTrue(result);
 
         // Test case for empty access token
-        doReturn("").when(spyService).getAccessToken();
-        result = spyService.getCarlist();
+        doReturn("").when(spyService).getAccessToken("userId");
+        result = spyService.getCarlist("userId");
         assertFalse(result);
 
         // Test case for no carId in the result
         expectedResponse = "{\"someOtherKey\":\"someValue\"}";
         doReturn(expectedResponse).when(spyService).executeApiCall(anyString(), anyString());
-        result = spyService.getCarlist();
+        result = spyService.getCarlist("userId");
         assertFalse(result);
     }
 }
