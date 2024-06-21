@@ -8,12 +8,11 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 @ConfigurationProperties(prefix = "kia")
 public class KiaProperties {
-    private String spreadsheetId;
-    private String refreshToken;
-    private String carId;
     private String clientId;
     private String clientSecret;
-    private String code;
+    private String redirectUri;
+    private String refreshToken;
+    private String carId;
     private Api api;
 
     @Data

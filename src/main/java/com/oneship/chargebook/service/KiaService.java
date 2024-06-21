@@ -1,10 +1,13 @@
 package com.oneship.chargebook.service;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.oneship.chargebook.config.KiaProperties;
+
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+
+
 import org.apache.commons.codec.binary.Base64;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,9 +19,12 @@ import java.io.DataOutputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+
+import com.oneship.chargebook.model.KiaToken;
 
 @Service
 public class KiaService {
@@ -26,6 +32,8 @@ public class KiaService {
 
     @Autowired
     private KiaProperties kiaProperties;
+
+    private KiaToken kiaToken;
 
     public String getDteJson(boolean prettyPrinting) throws Exception {
         String accessToken = getAccessToken();
@@ -137,7 +145,6 @@ public class KiaService {
 
     public Double getBatteryStatus() throws Exception {
         String result = getBatteryStatusJson(false);
-        logger.info("전기차 배터리 잔량: {}", result);
         Map<String, Object> map = fromJson(result, Map.class);
         return ((Number) map.get("soc")).doubleValue();
     }
@@ -173,14 +180,39 @@ public class KiaService {
     }
 
     protected String getAccessToken() throws Exception {
+        if (kiaToken == null || kiaToken.isTokenExpired()) {
+            refreshKiaToken();
+        }
+        return kiaToken.getAccessToken();
+    }
+
+    protected void refreshKiaToken() throws Exception {
         String refreshToken = kiaProperties.getRefreshToken();
-        String requestBody = "grant_type=refresh_token&refresh_token=" + refreshToken + "&redirect_uri=https://bi3eh7q4crerqn52ieauexuufa0mtyim.lambda-url.ap-northeast-2.on.aws";
+        String requestBody = "grant_type=refresh_token&refresh_token=" + refreshToken + "&redirect_uri=" + kiaProperties.getRedirectUri();
         String tokenResponse = tokenAPICall(requestBody);
-        ObjectMapper accessTokenObjectMapper = new ObjectMapper();
-        JsonNode TokenRoot = accessTokenObjectMapper.readTree(tokenResponse);
-        String _accessToken = TokenRoot.path("access_token").asText();
-        logger.info("accessToken = {}", _accessToken);
-        return _accessToken;
+        ObjectMapper objectMapper = new ObjectMapper();
+        JsonNode tokenRoot = objectMapper.readTree(tokenResponse);
+
+        String accessToken = tokenRoot.path("access_token").asText();
+        String newRefreshToken = tokenRoot.path("refresh_token").asText();
+        String tokenType = tokenRoot.path("token_type").asText();
+        int expiresIn = tokenRoot.path("expires_in").asInt();
+
+        kiaToken = new KiaToken(accessToken, newRefreshToken, tokenType, expiresIn);
+        kiaToken.setExpirationTime(LocalDateTime.now().plusSeconds(expiresIn));
+        logger.info("New accessToken = {}", accessToken);
+    }
+
+    public void deleteKiaToken() throws Exception {
+        if (kiaToken == null || kiaToken.getAccessToken() == null) {
+            return;
+        }
+
+        String requestBody = "grant_type=delete&access_token=" + kiaToken.getAccessToken();
+        tokenAPICall(requestBody);
+
+        // 토큰 정보 삭제
+        kiaToken = null;
     }
 
     protected String tokenAPICall(String requestBody) {

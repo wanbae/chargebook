@@ -1,6 +1,7 @@
 package com.oneship.chargebook.service;
 
 import com.oneship.chargebook.config.KiaProperties;
+import com.oneship.chargebook.model.KiaToken;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -11,6 +12,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.Map;
 
@@ -28,6 +30,8 @@ class KiaServiceTest {
     @InjectMocks
     private KiaService kiaService;
 
+    private KiaToken kiaToken;
+
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
@@ -39,6 +43,10 @@ class KiaServiceTest {
         }});
         when(kiaProperties.getClientId()).thenReturn("e8eab39e-cd97-4eec-9c5b-c238cb0225d2");
         when(kiaProperties.getClientSecret()).thenReturn("oy42brpiFedstigC8i2GLu33Zie0SUq7EVaeTmHMwt0EFiLh");
+
+        // 초기화 토큰 설정
+        kiaToken = new KiaToken("initialAccessToken", "initialRefreshToken", "Bearer", 86400);
+        kiaToken.setExpirationTime(LocalDateTime.now().plusSeconds(86400));
     }
 
     @Test
