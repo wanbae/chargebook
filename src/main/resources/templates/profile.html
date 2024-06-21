@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>사용자 프로필</title>
+    <link rel="icon" href="/favicon.ico" type="image/x-icon" />
+    <!-- Materialize CSS -->
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css"
+      rel="stylesheet"
+    />
+    <!-- Custom Styles -->
+    <link href="/css/styles.css" rel="stylesheet" />
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <h1>사용자 프로필</h1>
+        <a class="btn" href="/">홈으로</a>
+      </div>
+      <div class="section">
+        <h5>사용자 정보</h5>
+        <p><strong>아이디:</strong> <span th:text="${user.username}"></span></p>
+        <p><strong>역할:</strong> <span th:text="${user.role}"></span></p>
+      </div>
+      <div class="section" th:if="${kiaToken != null}">
+        <h5>KiaToken 정보</h5>
+        <p>
+          <strong>AccessToken:</strong>
+          <span th:text="${kiaToken.accessToken}"></span>
+        </p>
+        <p>
+          <strong>RefreshToken:</strong>
+          <span th:text="${kiaToken.refreshToken}"></span>
+        </p>
+        <p>
+          <strong>TokenType:</strong>
+          <span th:text="${kiaToken.tokenType}"></span>
+        </p>
+        <p>
+          <strong>만료시간:</strong>
+          <span th:text="${kiaToken.expirationTime}"></span>
+        </p>
+      </div>
+      <div class="section" th:if="${kiaToken == null}">
+        <a class="btn" href="/kia/sso">Kia 연동</a>
+      </div>
+    </div>
+    <!-- Materialize JavaScript -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+  </body>
+</html>

@@ -33,6 +33,10 @@ public class KiaService {
 
     @Autowired
     private KiaTokenRepository kiaTokenRepository;
+    
+    public KiaToken getKiaTokenByUserId(String userId) {
+        return kiaTokenRepository.findById(userId).orElse(null);
+    }
 
     public KiaToken requestKiaToken(String userId, String authorizationCode) {
         String requestBody = "grant_type=authorization_code&code=" + authorizationCode + "&redirect_uri=" + kiaProperties.getRedirectUri();

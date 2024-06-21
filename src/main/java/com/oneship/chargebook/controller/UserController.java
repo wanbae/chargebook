@@ -1,8 +1,11 @@
-
-// 새로운 파일: UserController.java (컨트롤러 클래스)
 package com.oneship.chargebook.controller;
 
+import com.oneship.chargebook.model.KiaToken;
+import com.oneship.chargebook.model.User;
+import com.oneship.chargebook.service.KiaService;
+import com.oneship.chargebook.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -16,6 +19,21 @@ public class UserController {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private KiaService kiaService;
+
+    @GetMapping("/profile")
+    public String profile(Model model, Authentication authentication) {
+        String username = authentication.getName();
+        User user = userService.findByUsername(username);
+        KiaToken kiaToken = kiaService.getKiaTokenByUserId(user.getId().toString());
+
+        model.addAttribute("user", user);
+        model.addAttribute("kiaToken", kiaToken);
+
+        return "profile";
+    }
 
     @GetMapping("/register")
     public String register(Model model) {
