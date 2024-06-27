@@ -11,9 +11,6 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 
-import com.oneship.chargebook.model.User;
-import com.oneship.chargebook.service.UserService;
-
 @Controller
 public class UserController {
 
@@ -27,7 +24,7 @@ public class UserController {
     public String profile(Model model, Authentication authentication) {
         String username = authentication.getName();
         User user = userService.findByUsername(username);
-        KiaToken kiaToken = kiaService.getKiaTokenByUserId(user.getId().toString());
+        KiaToken kiaToken = kiaService.getKiaTokenByUserId(user.getId());
 
         model.addAttribute("user", user);
         model.addAttribute("kiaToken", kiaToken);

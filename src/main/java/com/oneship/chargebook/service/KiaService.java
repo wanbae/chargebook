@@ -20,7 +20,6 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.time.LocalDateTime;
 import java.util.Collections;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -34,11 +33,10 @@ public class KiaService {
     @Autowired
     private KiaTokenRepository kiaTokenRepository;
     
-    public KiaToken getKiaTokenByUserId(String userId) {
-        return kiaTokenRepository.findById(userId).orElse(null);
+    public KiaToken getKiaTokenByUserId(Long userId) {
+        return kiaTokenRepository.findById(userId.toString()).orElse(null);
     }
-
-    public KiaToken requestKiaToken(String userId, String authorizationCode) {
+    public KiaToken requestKiaToken(Long userId, String authorizationCode) {
         String requestBody = "grant_type=authorization_code&code=" + authorizationCode + "&redirect_uri=" + kiaProperties.getRedirectUri();
         String tokenResponse = tokenAPICall(requestBody);
         ObjectMapper objectMapper = new ObjectMapper();
@@ -48,8 +46,8 @@ public class KiaService {
             String refreshToken = tokenRoot.path("refresh_token").asText();
             String tokenType = tokenRoot.path("token_type").asText();
             int expiresIn = tokenRoot.path("expires_in").asInt();
-            KiaToken kiaToken = new KiaToken(userId, accessToken, refreshToken, tokenType, expiresIn, LocalDateTime.now().plusSeconds(expiresIn));
-            saveTokenForUser(kiaToken);
+            KiaToken kiaToken = new KiaToken(userId.toString(), accessToken, refreshToken, tokenType, expiresIn, authorizationCode);
+            kiaTokenRepository.save(kiaToken);
             return kiaToken;
         } catch (Exception e) {
             logger.error("Error parsing token response", e);
@@ -57,13 +55,8 @@ public class KiaService {
         }
     }
 
-    public void saveTokenForUser(KiaToken kiaToken) {
-        kiaToken.setExpirationTime(LocalDateTime.now().plusSeconds(kiaToken.getExpiresIn()));
-        kiaTokenRepository.save(kiaToken);
-    }
-
-    public String getAccessToken(String userId) throws Exception {
-        Optional<KiaToken> kiaTokenOptional = kiaTokenRepository.findById(userId);
+    public String getAccessToken(Long userId) throws Exception {
+        Optional<KiaToken> kiaTokenOptional = kiaTokenRepository.findById(userId.toString());
         if (kiaTokenOptional.isPresent()) {
             KiaToken kiaToken = kiaTokenOptional.get();
             if (kiaToken.isTokenExpired()) {
@@ -75,7 +68,7 @@ public class KiaService {
         }
     }
 
-    public long getOdometer(String userId) throws Exception {
+    public long getOdometer(Long userId) throws Exception {
         String accessToken = getAccessToken(userId);
         if (accessToken.isEmpty()) {
             return 0;
@@ -87,7 +80,7 @@ public class KiaService {
         return rootNode.path("odometers").get(0).path("value").asLong();
     }
 
-    public double getBatteryStatus(String userId) throws Exception {
+    public double getBatteryStatus(Long userId) throws Exception {
         String accessToken = getAccessToken(userId);
         if (accessToken.isEmpty()) {
             return 0.0;
@@ -99,7 +92,7 @@ public class KiaService {
         return rootNode.path("soc").asDouble();
     }
 
-    public double getDte(String userId) throws Exception {
+    public double getDte(Long userId) throws Exception {
         String accessToken = getAccessToken(userId);
         if (accessToken.isEmpty()) {
             return 0.0;
@@ -111,7 +104,7 @@ public class KiaService {
         return rootNode.path("value").asDouble();
     }
 
-    public String getDteJson(String userId, boolean forceUpdate) throws Exception {
+    public String getDteJson(Long userId, boolean forceUpdate) throws Exception {
         String accessToken = getAccessToken(userId);
         if (accessToken.isEmpty()) {
             return "{}";
@@ -120,7 +113,7 @@ public class KiaService {
         return executeApiCall(apiURL, accessToken);
     }
 
-    public Map<String, Object> getCharging(String userId) throws Exception {
+    public Map<String, Object> getCharging(Long userId) throws Exception {
         String accessToken = getAccessToken(userId);
         if (accessToken.isEmpty()) {
             return Collections.emptyMap();
@@ -131,7 +124,7 @@ public class KiaService {
         return objectMapper.readValue(result, Map.class);
     }
 
-    public boolean getCarlist(String userId) throws Exception {
+    public boolean getCarlist(Long userId) throws Exception {
         String accessToken = getAccessToken(userId);
         if (accessToken.isEmpty()) {
             return false;
@@ -143,8 +136,8 @@ public class KiaService {
         return rootNode.has("carId");
     }
 
-    protected KiaToken refreshKiaToken(String userId) throws Exception {
-        KiaToken currentToken = kiaTokenRepository.findById(userId)
+    protected KiaToken refreshKiaToken(Long userId) throws Exception {
+        KiaToken currentToken = kiaTokenRepository.findById(userId.toString())
                 .orElseThrow(() -> new Exception("No token found for user: " + userId));
 
         String refreshToken = currentToken.getRefreshToken();
@@ -158,15 +151,15 @@ public class KiaService {
         String tokenType = tokenRoot.path("token_type").asText();
         int expiresIn = tokenRoot.path("expires_in").asInt();
 
-        KiaToken kiaToken = new KiaToken(userId, accessToken, newRefreshToken, tokenType, expiresIn);
+        KiaToken kiaToken = new KiaToken(userId.toString(), accessToken, newRefreshToken, tokenType, expiresIn, currentToken.getCode());
         kiaToken.setExpirationTime(LocalDateTime.now().plusSeconds(expiresIn));
         kiaTokenRepository.save(kiaToken);
         logger.info("New accessToken = {}", accessToken);
         return kiaToken;
     }
 
-    public void deleteKiaToken(String userId) throws Exception {
-        KiaToken kiaToken = kiaTokenRepository.findById(userId).orElse(null);
+    public void deleteKiaToken(Long userId) throws Exception {
+        KiaToken kiaToken = kiaTokenRepository.findById(userId.toString()).orElse(null);
         if (kiaToken == null || kiaToken.getAccessToken() == null) {
             return;
         }
@@ -174,7 +167,7 @@ public class KiaService {
         String requestBody = "grant_type=delete&access_token=" + kiaToken.getAccessToken();
         tokenAPICall(requestBody);
 
-        kiaTokenRepository.deleteById(userId);
+        kiaTokenRepository.deleteById(userId.toString());
     }
 
     protected String tokenAPICall(String requestBody) {

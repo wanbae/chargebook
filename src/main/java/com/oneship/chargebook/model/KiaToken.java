@@ -24,14 +24,16 @@ public class KiaToken {
     private String tokenType;
     private int expiresIn;
     private LocalDateTime expirationTime;
+    private String code;  // 인증 코드 추가
 
-    public KiaToken(String userId, String accessToken, String refreshToken, String tokenType, int expiresIn) {
+    public KiaToken(String userId, String accessToken, String refreshToken, String tokenType, int expiresIn, String code) {
         this.userId = userId;
         this.accessToken = accessToken;
         this.refreshToken = refreshToken;
         this.tokenType = tokenType;
         this.expiresIn = expiresIn;
         this.expirationTime = LocalDateTime.now().plusSeconds(expiresIn);
+        this.code = code;
     }
 
     public boolean isTokenExpired() {
