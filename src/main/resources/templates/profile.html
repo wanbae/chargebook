@@ -42,6 +42,7 @@
           <strong>만료시간:</strong>
           <span th:text="${kiaToken.expirationTime}"></span>
         </p>
+        <a class="btn" href="/kia/sso">Kia 재연동</a>
       </div>
       <div class="section" th:if="${kiaToken == null}">
         <a class="btn" href="/kia/sso">Kia 연동</a>
