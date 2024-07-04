@@ -32,10 +32,11 @@ public class KiaService {
 
     @Autowired
     private KiaTokenRepository kiaTokenRepository;
-    
+
     public KiaToken getKiaTokenByUserId(Long userId) {
         return kiaTokenRepository.findById(userId.toString()).orElse(null);
     }
+
     public KiaToken requestKiaToken(Long userId, String authorizationCode) {
         String requestBody = "grant_type=authorization_code&code=" + authorizationCode + "&redirect_uri=" + kiaProperties.getRedirectUri();
         String tokenResponse = tokenAPICall(requestBody);
@@ -47,6 +48,7 @@ public class KiaService {
             String tokenType = tokenRoot.path("token_type").asText();
             int expiresIn = tokenRoot.path("expires_in").asInt();
             KiaToken kiaToken = new KiaToken(userId.toString(), accessToken, refreshToken, tokenType, expiresIn, authorizationCode);
+            kiaToken.setRefreshTokenExpirationTime(LocalDateTime.now().plusYears(1)); // Refresh token expires in 1 year
             kiaTokenRepository.save(kiaToken);
             return kiaToken;
         } catch (Exception e) {
@@ -59,7 +61,7 @@ public class KiaService {
         Optional<KiaToken> kiaTokenOptional = kiaTokenRepository.findById(userId.toString());
         if (kiaTokenOptional.isPresent()) {
             KiaToken kiaToken = kiaTokenOptional.get();
-            if (kiaToken.isTokenExpired()) {
+            if (kiaToken.isAccessTokenExpired()) {
                 kiaToken = refreshKiaToken(userId);
             }
             return kiaToken.getAccessToken();
@@ -152,7 +154,8 @@ public class KiaService {
         int expiresIn = tokenRoot.path("expires_in").asInt();
 
         KiaToken kiaToken = new KiaToken(userId.toString(), accessToken, newRefreshToken, tokenType, expiresIn, currentToken.getCode());
-        kiaToken.setExpirationTime(LocalDateTime.now().plusSeconds(expiresIn));
+        kiaToken.setAccessTokenExpirationTime(LocalDateTime.now().plusSeconds(expiresIn));
+        kiaToken.setRefreshTokenExpirationTime(currentToken.getRefreshTokenExpirationTime());  // Keep the original refresh token expiration time
         kiaTokenRepository.save(kiaToken);
         logger.info("New accessToken = {}", accessToken);
         return kiaToken;

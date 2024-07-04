@@ -23,7 +23,8 @@ public class KiaToken {
     private String refreshToken;
     private String tokenType;
     private int expiresIn;
-    private LocalDateTime expirationTime;
+    private LocalDateTime accessTokenExpirationTime;
+    private LocalDateTime refreshTokenExpirationTime;  // refreshToken의 만료 시간 추가
     private String code;  // 인증 코드 추가
 
     public KiaToken(String userId, String accessToken, String refreshToken, String tokenType, int expiresIn, String code) {
@@ -32,11 +33,16 @@ public class KiaToken {
         this.refreshToken = refreshToken;
         this.tokenType = tokenType;
         this.expiresIn = expiresIn;
-        this.expirationTime = LocalDateTime.now().plusSeconds(expiresIn);
+        this.accessTokenExpirationTime = LocalDateTime.now().plusSeconds(expiresIn);
+        this.refreshTokenExpirationTime = LocalDateTime.now().plusYears(1);  // refreshToken 만료 시간 1년으로 설정
         this.code = code;
     }
 
-    public boolean isTokenExpired() {
-        return LocalDateTime.now().isAfter(expirationTime);
+    public boolean isAccessTokenExpired() {
+        return LocalDateTime.now().isAfter(accessTokenExpirationTime);
+    }
+
+    public boolean isRefreshTokenExpired() {
+        return LocalDateTime.now().isAfter(refreshTokenExpirationTime);
     }
 }

@@ -24,27 +24,15 @@
         <p><strong>아이디:</strong> <span th:text="${user.username}"></span></p>
         <p><strong>역할:</strong> <span th:text="${user.role}"></span></p>
       </div>
-      <div class="section" th:if="${kiaToken != null}">
-        <h5>KiaToken 정보</h5>
+      <div class="section" th:if="${refreshTokenExpirationTime != null}">
+        <h5>토큰 정보</h5>
         <p>
-          <strong>AccessToken:</strong>
-          <span th:text="${kiaToken.accessToken}"></span>
-        </p>
-        <p>
-          <strong>RefreshToken:</strong>
-          <span th:text="${kiaToken.refreshToken}"></span>
-        </p>
-        <p>
-          <strong>TokenType:</strong>
-          <span th:text="${kiaToken.tokenType}"></span>
-        </p>
-        <p>
-          <strong>만료시간:</strong>
-          <span th:text="${kiaToken.expirationTime}"></span>
+          <strong>RefreshToken 만료시간:</strong>
+          <span th:text="${refreshTokenExpirationTime}"></span>
         </p>
         <a class="btn" href="/kia/sso">Kia 재연동</a>
       </div>
-      <div class="section" th:if="${kiaToken == null}">
+      <div class="section" th:if="${refreshTokenExpirationTime == null}">
         <a class="btn" href="/kia/sso">Kia 연동</a>
       </div>
     </div>

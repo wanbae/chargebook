@@ -27,7 +27,11 @@ public class UserController {
         KiaToken kiaToken = kiaService.getKiaTokenByUserId(user.getId());
 
         model.addAttribute("user", user);
-        model.addAttribute("kiaToken", kiaToken);
+        if (kiaToken != null) {
+            model.addAttribute("refreshTokenExpirationTime", kiaToken.getRefreshTokenExpirationTime());
+        } else {
+            model.addAttribute("refreshTokenExpirationTime", null);
+        }
 
         return "profile";
     }
