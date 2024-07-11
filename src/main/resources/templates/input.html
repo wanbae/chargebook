@@ -11,6 +11,190 @@
     />
     <!-- Custom CSS -->
     <link href="/css/styles.css" rel="stylesheet" />
+    <style>
+      body {
+        padding: 20px;
+      }
+
+      .header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .header h1 {
+        margin: 0;
+        text-align: center;
+        width: 100%;
+      }
+
+      .header-right {
+        display: flex;
+        align-items: center;
+      }
+
+      .month-selector {
+        margin-left: 20px;
+      }
+
+      .profile-menu {
+        position: relative;
+        display: inline-block;
+      }
+
+      .profile-menu .avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        cursor: pointer;
+      }
+
+      .profile-menu .dropdown-content {
+        display: none;
+        position: absolute;
+        background-color: white;
+        min-width: 160px;
+        box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
+        z-index: 1;
+      }
+
+      .profile-menu:hover .dropdown-content {
+        display: block;
+      }
+
+      .dropdown-content a {
+        color: black;
+        padding: 12px 16px;
+        text-decoration: none;
+        display: block;
+      }
+
+      .dropdown-content a:hover {
+        background-color: #ddd;
+      }
+
+      .summary-tables {
+        display: flex;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        margin-top: 20px;
+      }
+
+      .summary-table {
+        flex: 1;
+        margin: 10px;
+      }
+
+      .summary-table h5 {
+        margin: 0 0 10px 0;
+      }
+
+      @media (max-width: 600px) {
+        table {
+          font-size: 12px;
+        }
+
+        th,
+        td {
+          padding: 8px;
+        }
+
+        .summary-tables {
+          flex-direction: column;
+        }
+
+        tr.clickable-row {
+          cursor: pointer;
+        }
+      }
+
+      .button-container {
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+        margin-top: 20px;
+      }
+
+      .input-field label {
+        transform: translateY(-20px);
+      }
+
+      .date-col {
+        white-space: nowrap;
+      }
+
+      .title {
+        text-align: center;
+        margin-bottom: 20px;
+      }
+
+      .input-row {
+        display: flex;
+        align-items: center;
+        margin-bottom: 20px;
+      }
+
+      .input-field {
+        margin-bottom: 20px;
+      }
+
+      .status-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 20px;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 10px;
+        background-color: #f9f9f9;
+        margin-bottom: 20px;
+      }
+
+      .status-item {
+        flex: 1;
+        text-align: center;
+      }
+
+      .status-item span {
+        display: block;
+        font-size: 1.2em;
+        font-weight: bold;
+      }
+
+      .status-label {
+        font-size: 0.9em;
+        color: #666;
+      }
+
+      .progress {
+        display: none;
+        margin-top: 10px;
+        margin-bottom: 20px;
+      }
+
+      /* 버튼 스타일 */
+      #chargeHistoryBtn {
+        margin-left: 10px; /* 사업자 선택 박스와의 간격 */
+      }
+
+      /* 팝업창 스타일 */
+      .modal-content ul {
+        padding-left: 0;
+      }
+
+      .modal-content ul li {
+        list-style-type: none;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        margin-bottom: 10px;
+        cursor: pointer;
+      }
+
+      .modal-content ul li:hover {
+        background-color: #f0f0f0;
+      }
+    </style>
   </head>
   <body>
     <div class="container">
@@ -32,25 +216,32 @@
           />
           <label for="date" class="active">날짜</label>
         </div>
-        <div class="input-field">
-          <select
-            id="company"
-            th:field="*{company}"
-            class="browser-default"
-            autocomplete="off"
-          >
-            <option value="한화모티브" selected>한화모티브</option>
-            <option value="SK일렉링크">SK일렉링크</option>
-            <option value="EV Infra">EV Infra</option>
-            <option value="chargev">chargev</option>
-            <option value="E-Pit">E-Pit</option>
-            <option value="파워큐브">파워큐브</option>
-            <option value="한전">한전</option>
-            <option value="환경부">환경부</option>
-            <option value="에버온">에버온</option>
-            <option value="기타">기타</option>
-          </select>
-          <label for="company" class="active">사업자</label>
+        <div class="row">
+          <div class="input-field col s9">
+            <select
+              id="company"
+              th:field="*{company}"
+              class="browser-default"
+              autocomplete="off"
+            >
+              <option value="한화모티브" selected>한화모티브</option>
+              <option value="SK일렉링크">SK일렉링크</option>
+              <option value="EV Infra">EV Infra</option>
+              <option value="chargev">chargev</option>
+              <option value="E-Pit">E-Pit</option>
+              <option value="파워큐브">파워큐브</option>
+              <option value="한전">한전</option>
+              <option value="환경부">환경부</option>
+              <option value="에버온">에버온</option>
+              <option value="기타">기타</option>
+            </select>
+            <label for="company" class="active">사업자</label>
+          </div>
+          <div class="input-field col s3">
+            <button type="button" class="btn" id="chargeHistoryBtn">
+              충전 내역 조회
+            </button>
+          </div>
         </div>
         <div class="input-field">
           <input
@@ -154,9 +345,78 @@
       </form>
     </div>
 
+    <!-- Modal Structure -->
+    <div id="chargeModal" class="modal">
+      <div class="modal-content">
+        <h4>충전 내역 선택</h4>
+        <ul id="chargeList"></ul>
+      </div>
+      <div class="modal-footer">
+        <a href="#!" class="modal-close waves-effect waves-green btn-flat"
+          >닫기</a
+        >
+      </div>
+    </div>
+
     <!-- Materialize JavaScript -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
     <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        var elems = document.querySelectorAll(".modal");
+        var instances = M.Modal.init(elems, {});
+
+        const chargeHistoryBtn = document.getElementById("chargeHistoryBtn");
+        const companySelect = document.getElementById("company");
+        const dateInput = document.getElementById("date");
+        const amountOfChargeInput = document.getElementById("amountOfCharge");
+        const priceInput = document.getElementById("price");
+        const pointInput = document.getElementById("point");
+
+        chargeHistoryBtn.addEventListener("click", function () {
+          const selectedCompany = companySelect.value;
+          const selectedDate = dateInput.value;
+
+          fetch(`/api/chargeHistory/${selectedCompany}?date=${selectedDate}`)
+            .then((response) => response.json())
+            .then((data) => {
+              if (data.length === 1) {
+                const charge = data[0];
+                amountOfChargeInput.value = charge.amountOfCharge;
+                priceInput.value = charge.price;
+                pointInput.value = charge.point;
+                M.updateTextFields();
+              } else if (data.length > 1) {
+                const chargeList = document.getElementById("chargeList");
+                chargeList.innerHTML = ""; // 리스트 초기화
+                data.forEach((charge, index) => {
+                  const listItem = document.createElement("li");
+                  listItem.innerText = `충전량: ${charge.amountOfCharge}, 금액: ${charge.price}, 포인트: ${charge.point}`;
+                  listItem.addEventListener("click", function () {
+                    amountOfChargeInput.value = charge.amountOfCharge;
+                    priceInput.value = charge.price;
+                    pointInput.value = charge.point;
+                    M.updateTextFields();
+                    const instance = M.Modal.getInstance(
+                      document.getElementById("chargeModal")
+                    );
+                    instance.close();
+                  });
+                  chargeList.appendChild(listItem);
+                });
+                const instance = M.Modal.getInstance(
+                  document.getElementById("chargeModal")
+                );
+                instance.open();
+              } else {
+                alert("해당 날짜에 충전 내역이 없습니다.");
+              }
+            })
+            .catch((error) =>
+              console.error("Error fetching charge history:", error)
+            );
+        });
+      });
+
       function fetchCarStatus() {
         document.querySelector(".progress").style.display = "block";
         fetch("/api/accumulatedDistance")

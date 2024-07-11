@@ -179,4 +179,16 @@ public class HomeController {
         }
         return response;
     }
+
+    @GetMapping("/api/chargeHistory/{companyName}")
+    @ResponseBody
+    public List<ChargeData> getChargeHistoryByCompanyAndDate(
+        @PathVariable String companyName, 
+        @RequestParam String date,
+        Principal principal
+    ) {
+        User user = userDetailsService.getUserByPrincipal(principal);
+        return chargeDataService.getChargeDataByCompanyAndDateAndUser(companyName, date, user);
+    }
+
 }

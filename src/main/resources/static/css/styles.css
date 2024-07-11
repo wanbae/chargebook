@@ -157,3 +157,7 @@ body {
   margin-top: 10px;
   margin-bottom: 20px;
 }
+/* 버튼 스타일 */
+#chargeHistoryBtn {
+  margin-left: 10px; /* 사업자 선택 박스와의 간격 */
+}

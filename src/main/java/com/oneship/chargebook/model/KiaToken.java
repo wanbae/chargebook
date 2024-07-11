@@ -39,10 +39,10 @@ public class KiaToken {
     }
 
     public boolean isAccessTokenExpired() {
-        return LocalDateTime.now().isAfter(accessTokenExpirationTime);
+        return accessTokenExpirationTime==null || LocalDateTime.now().isAfter(accessTokenExpirationTime);
     }
 
     public boolean isRefreshTokenExpired() {
-        return LocalDateTime.now().isAfter(refreshTokenExpirationTime);
+        return refreshTokenExpirationTime == null || LocalDateTime.now().isAfter(refreshTokenExpirationTime);
     }
 }
