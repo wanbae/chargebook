@@ -1,0 +1,14 @@
+version: "3.8"
+
+services:
+  chargebook:
+    image: parkwb79/drivebook:latest
+    container_name: chargebook-container
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./config/application-secret.yml:/app/config/application-secret.yml
+      - ./data:/app/data
+    environment:
+      SPRING_PROFILES_ACTIVE: secret
+    restart: always

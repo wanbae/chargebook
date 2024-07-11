@@ -1,12 +1,14 @@
 package com.oneship.chargebook.model;
 
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
 import java.util.Date;
 
 @Entity
 @Data
+@NoArgsConstructor
 public class ChargeData {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -38,6 +40,21 @@ public class ChargeData {
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
+
+    public ChargeData(Date date, Double amountOfCharge, Integer price, Integer point, Integer discountedPrice, Integer discountRate, Integer finalPrice, Integer finalUnitPrice, Integer distance, String card, String company, User user) {
+        this.date = date;
+        this.amountOfCharge = amountOfCharge;
+        this.price = price;
+        this.point = point;
+        this.discountedPrice = discountedPrice;
+        this.discountRate = discountRate;
+        this.finalPrice = finalPrice;
+        this.finalUnitPrice = finalUnitPrice;
+        this.distance = distance;
+        this.card = card;
+        this.company = company;
+        this.user = user;
+    }
 
     public Integer getUnitPrice() {
         if (amountOfCharge != null && amountOfCharge > 0) {

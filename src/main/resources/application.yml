@@ -16,6 +16,8 @@ server:
   port: 8080
 
 spring:
+  config:
+    import: optional:file:./config/application-secret.yml
   profiles:
     active: secret
   datasource:

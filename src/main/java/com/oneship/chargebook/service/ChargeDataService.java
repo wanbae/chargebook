@@ -2,7 +2,6 @@ package com.oneship.chargebook.service;
 
 import org.springframework.web.client.RestTemplate;
 
-import com.nimbusds.jose.shaded.json.parser.ParseException;
 import com.oneship.chargebook.model.ChargeData;
 import com.oneship.chargebook.model.User;
 import com.oneship.chargebook.repository.ChargeDataRepository;

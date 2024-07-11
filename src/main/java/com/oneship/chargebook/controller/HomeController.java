@@ -9,8 +9,6 @@ import java.util.Map;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
-import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.WebDataBinder;
@@ -159,23 +157,6 @@ public class HomeController {
         } catch (Exception e) {
             response.put("error", 1);
             response.put("message", e.getMessage());
-        }
-        return response;
-    }
-
-    @GetMapping("/user")
-    @ResponseBody
-    public Map<String, Object> getUser(Principal principal) {
-        Map<String, Object> response = new HashMap<>();
-        if (principal instanceof OAuth2AuthenticationToken) {
-            OAuth2AuthenticationToken oAuth2AuthenticationToken = (OAuth2AuthenticationToken) principal;
-            OAuth2User oAuth2User = oAuth2AuthenticationToken.getPrincipal();
-            String email = oAuth2User.getAttribute("email");
-            User user = userDetailsService.getUserByPrincipal(principal);
-            response.put("email", email);
-            response.put("user", user);
-        } else {
-            response.put("error", "Principal is not OAuth2AuthenticationToken");
         }
         return response;
     }

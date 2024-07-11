@@ -20,8 +20,8 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-security'
     implementation 'org.thymeleaf.extras:thymeleaf-extras-springsecurity5'
     implementation 'org.projectlombok:lombok'
-    implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
-    implementation 'org.springframework.boot:spring-boot-starter-oauth2-resource-server'
+    // implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
+    // implementation 'org.springframework.boot:spring-boot-starter-oauth2-resource-server'
     implementation 'com.google.code.gson:gson:2.8.8' // Gson 라이브러리 추가
     implementation 'commons-codec:commons-codec:1.15' // Apache Commons Codec 라이브러리 추가
     runtimeOnly 'com.h2database:h2'
@@ -42,6 +42,10 @@ jib {
         platforms {
             platform {
                 architecture = 'arm64'
+                os = 'linux'
+            }
+            platform {
+                architecture = 'amd64'
                 os = 'linux'
             }
         }

@@ -36,17 +36,17 @@ public class UserController {
         return "profile";
     }
 
-    @GetMapping("/register")
-    public String register(Model model) {
-        model.addAttribute("user", new User());
-        return "register";
-    }
+    // @GetMapping("/register")
+    // public String register(Model model) {
+    //     model.addAttribute("user", new User());
+    //     return "register";
+    // }
 
-    @PostMapping("/register")
-    public String registerUser(User user) {
-        userService.saveUser(user);
-        return "redirect:/login";
-    }
+    // @PostMapping("/register")
+    // public String registerUser(User user) {
+    //     userService.saveUser(user);
+    //     return "redirect:/login";
+    // }
 
     @GetMapping("/login")
     public String login() {

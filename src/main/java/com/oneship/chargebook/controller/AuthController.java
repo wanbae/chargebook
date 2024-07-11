@@ -5,6 +5,7 @@ import com.oneship.chargebook.model.KiaToken;
 import com.oneship.chargebook.model.User;
 import com.oneship.chargebook.service.KiaService;
 import com.oneship.chargebook.service.UserService;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
@@ -27,6 +28,8 @@ public class AuthController {
         String clientId = kiaProperties.getClientId();  // KiaProperties에서 가져옴
         String redirectUri = kiaProperties.getRedirectUri();  // KiaProperties에서 가져옴
         String state = kiaProperties.getState();
+
+        System.out.println("Client ID: " + clientId);
 
         String authUrl = "https://prd.kr-ccapi.kia.com/api/v1/user/oauth2/authorize" +
                 "?response_type=code" +
