@@ -75,23 +75,64 @@ body {
   margin: 0 0 10px 0;
 }
 
-@media (max-width: 600px) {
-  table {
-    font-size: 12px;
-  }
+/* 달력 및 기간 선택 스타일 */
+.calendar-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 10px;
+}
 
-  th,
-  td {
-    padding: 8px;
-  }
+.calendar-container img {
+  cursor: pointer;
+}
 
-  .summary-tables {
-    flex-direction: column;
-  }
+.calendar-container span {
+  font-size: 18px;
+  margin: 0 10px;
+}
 
-  tr.clickable-row {
-    cursor: pointer;
-  }
+.period-selection {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 5px;
+  margin-bottom: 20px;
+}
+
+.period-selection input[type="date"] {
+  padding: 5px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  width: 130px;
+}
+
+.period-selection .btn {
+  padding: 5px 10px;
+}
+
+/* 테이블 스타일 */
+.table-container {
+  display: flex;
+  justify-content: center;
+  overflow-x: auto;
+}
+
+.charge-table {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.charge-table th,
+.charge-table td {
+  padding: 8px 10px;
+  white-space: nowrap;
+  text-align: left;
+}
+
+.charge-table th {
+  background-color: #f9f9f9;
 }
 
 .button-container {
@@ -157,7 +198,7 @@ body {
   margin-top: 10px;
   margin-bottom: 20px;
 }
-/* 버튼 스타일 */
+
 #chargeHistoryBtn {
-  margin-left: 10px; /* 사업자 선택 박스와의 간격 */
+  margin-left: 10px;
 }

@@ -28,9 +28,6 @@ import java.util.Optional;
 import java.util.Calendar;
 import java.util.Date;
 
-import com.oneship.chargebook.service.CustomUserDetailsService;
-import com.oneship.chargebook.service.KiaService;
-
 @Service
 public class ChargeDataService {
 
@@ -47,8 +44,8 @@ public class ChargeDataService {
     @Autowired
     private KiaService kiaService;
 
-    public List<ChargeData> getChargeDataByMonthAndUser(String month, User user) {
-        return chargeDataRepository.findByMonthAndUser(month, user);
+    public List<ChargeData> getChargeDataByDateRangeAndUser(Date startDate, Date endDate, User user) {
+        return chargeDataRepository.findByDateRangeAndUser(startDate, endDate, user);
     }
 
     public List<ChargeData> getAllChargeDataByUser(User user) {
@@ -109,19 +106,19 @@ public class ChargeDataService {
         }
     }
 
-    public Map<String, Integer> getTotalPriceByCard(String month, User user) {
-        List<ChargeData> monthlyData = getChargeDataByMonthAndUser(month, user);
+    public Map<String, Integer> getTotalPriceByCard(Date startDate, Date endDate, User user) {
+        List<ChargeData> dataList = getChargeDataByDateRangeAndUser(startDate, endDate, user);
         Map<String, Integer> totalPriceByCard = new HashMap<>();
-        for (ChargeData data : monthlyData) {
+        for (ChargeData data : dataList) {
             totalPriceByCard.merge(data.getCard(), data.getPrice(), Integer::sum);
         }
         return totalPriceByCard;
     }
 
-    public Map<String, Integer> getTotalChargeByCompany(String month, User user) {
-        List<ChargeData> monthlyData = getChargeDataByMonthAndUser(month, user);
+    public Map<String, Integer> getTotalChargeByCompany(Date startDate, Date endDate, User user) {
+        List<ChargeData> dataList = getChargeDataByDateRangeAndUser(startDate, endDate, user);
         Map<String, Integer> totalChargeByCompany = new HashMap<>();
-        for (ChargeData data : monthlyData) {
+        for (ChargeData data : dataList) {
             totalChargeByCompany.merge(data.getCompany(), data.getAmountOfCharge().intValue(), Integer::sum);
         }
         return totalChargeByCompany;

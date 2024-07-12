@@ -12,29 +12,50 @@
     />
     <!-- Custom Styles -->
     <link href="/css/styles.css" rel="stylesheet" />
+    <style>
+      .period-selection {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 5px;
+        margin-bottom: 20px;
+      }
+
+      .period-selection input[type="date"] {
+        padding: 5px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        width: 130px;
+      }
+
+      .period-selection .btn {
+        padding: 5px 10px;
+      }
+
+      .table-container {
+        display: flex;
+        justify-content: center;
+        overflow-x: auto;
+      }
+
+      .charge-table {
+        width: 100%;
+        max-width: 1200px;
+        margin: 0 auto;
+      }
+
+      .clickable-row {
+        cursor: pointer;
+      }
+    </style>
   </head>
   <body>
     <div class="container">
       <div class="header">
         <h1>EV 충전</h1>
         <div class="header-right">
-          <form
-            id="monthForm"
-            action="/"
-            method="get"
-            class="input-field month-selector"
-          >
-            <input
-              type="month"
-              id="month"
-              name="month"
-              th:value="${selectedMonth}"
-              onchange="document.getElementById('monthForm').submit();"
-            />
-          </form>
           <ul id="userDropdown" class="dropdown-content">
             <li><a href="/profile">Profile</a></li>
-            <!-- Kia 연동 메뉴 제거 -->
             <li class="divider" tabindex="-1"></li>
             <li><a href="/logout">Logout</a></li>
           </ul>
@@ -48,11 +69,24 @@
           </a>
         </div>
       </div>
+
+      <!-- 기간 선택 -->
+      <div class="period-selection">
+        <input
+          type="date"
+          id="startDate"
+          name="startDate"
+          th:value="${startDate}"
+        />
+        <input type="date" id="endDate" name="endDate" th:value="${endDate}" />
+        <button class="btn" id="searchButton">조회</button>
+      </div>
+
       <!-- 기존 테이블 및 기타 콘텐츠 -->
       <div class="summary-tables">
         <div class="summary-table">
           <h5>카드별 청구금액 총합</h5>
-          <table class="striped responsive-table">
+          <table class="striped">
             <thead>
               <tr>
                 <th>카드</th>
@@ -71,7 +105,7 @@
         </div>
         <div class="summary-table">
           <h5>사업자별 충전량 총합</h5>
-          <table class="striped responsive-table">
+          <table class="striped">
             <thead>
               <tr>
                 <th>사업자</th>
@@ -90,21 +124,21 @@
       <div th:if="${#lists.isEmpty(chargeDataList)}">
         <p>충전기록이 없습니다</p>
       </div>
-      <div class="table-responsive">
-        <table class="striped responsive-table">
+      <div class="table-container">
+        <table class="striped charge-table">
           <thead>
             <tr>
               <th>날짜</th>
-              <th class="hide-on-small-only">충전량</th>
+              <th>충전량</th>
               <th>충전금액</th>
-              <th class="hide-on-small-only">단가</th>
-              <th class="hide-on-small-only">포인트 사용</th>
-              <th class="hide-on-small-only">할인후 금액</th>
-              <th class="hide-on-small-only">청구금액</th>
-              <th class="hide-on-small-only">청구단가</th>
-              <th class="hide-on-small-only">배터리 잔량</th>
-              <th class="hide-on-small-only">주행 가능 거리</th>
-              <th class="hide-on-small-only">누적주행거리</th>
+              <th>단가</th>
+              <th>포인트 사용</th>
+              <th>할인후 금액</th>
+              <th>청구금액</th>
+              <th>청구단가</th>
+              <th>배터리 잔량</th>
+              <th>주행 가능 거리</th>
+              <th>누적주행거리</th>
               <th>카드</th>
               <th>사업자</th>
             </tr>
@@ -116,46 +150,35 @@
               class="clickable-row"
             >
               <td
-                class="date-col"
-                th:data-full="${#dates.format(data.date, 'yyyy.MM.dd')}"
-                th:data-short="${#dates.format(data.date, 'MM.dd')}"
-                th:text="${#dates.format(data.date, 'yyyy.MM.dd')}"
+                th:text="${#dates.format(data.date, 'MM.dd')}"
+                data-label="날짜"
               ></td>
-              <td
-                th:text="${data.amountOfCharge}"
-                class="hide-on-small-only"
-              ></td>
-              <td th:text="${data.price}"></td>
-              <td th:text="${data.unitPrice}" class="hide-on-small-only"></td>
-              <td th:text="${data.point}" class="hide-on-small-only"></td>
+              <td th:text="${data.amountOfCharge}" data-label="충전량"></td>
+              <td th:text="${data.price}" data-label="충전금액"></td>
+              <td th:text="${data.unitPrice}" data-label="단가"></td>
+              <td th:text="${data.point}" data-label="포인트 사용"></td>
               <td
                 th:text="${data.discountedPrice}"
-                class="hide-on-small-only"
+                data-label="할인후 금액"
               ></td>
-              <td th:text="${data.finalPrice}" class="hide-on-small-only"></td>
-              <td
-                th:text="${data.finalUnitPrice}"
-                class="hide-on-small-only"
-              ></td>
-              <td
-                th:text="${data.batteryStatus}"
-                class="hide-on-small-only"
-              ></td>
+              <td th:text="${data.finalPrice}" data-label="청구금액"></td>
+              <td th:text="${data.finalUnitPrice}" data-label="청구단가"></td>
+              <td th:text="${data.batteryStatus}" data-label="배터리 잔량"></td>
               <td
                 th:text="${data.drivingRange}"
-                class="hide-on-small-only"
+                data-label="주행 가능 거리"
               ></td>
-              <td th:text="${data.distance}" class="hide-on-small-only"></td>
+              <td th:text="${data.distance}" data-label="누적주행거리"></td>
               <td
                 th:text="${data.card == 'BC' ? '비씨카드' : data.card == 'Samsung' ? '삼성카드' : data.card == 'Shinhan' ? '신한카드' : data.card == 'Hana' ? '하나카드' : data.card}"
+                data-label="카드"
               ></td>
-              <td th:text="${data.company}"></td>
+              <td th:text="${data.company}" data-label="사업자"></td>
             </tr>
           </tbody>
         </table>
       </div>
       <div class="button-container">
-        <a class="btn left" href="/chart">차트 보기</a>
         <a class="btn right" href="/input">입력</a>
       </div>
     </div>
@@ -167,29 +190,19 @@
         var elems = document.querySelectorAll(".dropdown-trigger");
         var instances = M.Dropdown.init(elems);
 
-        var dateCols = document.querySelectorAll(".date-col");
-        if (window.innerWidth <= 600) {
-          dateCols.forEach(function (col) {
-            col.textContent = col.getAttribute("data-short");
-          });
-        } else {
-          dateCols.forEach(function (col) {
-            col.textContent = col.getAttribute("data-full");
-          });
-        }
-      });
+        // 초기 로드시 테이블의 가로 스크롤 위치를 왼쪽으로 설정
+        document.querySelector(".table-container").scrollLeft = 0;
 
-      window.addEventListener("resize", function () {
-        var dateCols = document.querySelectorAll(".date-col");
-        if (window.innerWidth <= 600) {
-          dateCols.forEach(function (col) {
-            col.textContent = col.getAttribute("data-short");
+        // 조회 버튼 클릭 이벤트
+        document
+          .getElementById("searchButton")
+          .addEventListener("click", () => {
+            const startDateInput = document.getElementById("startDate").value;
+            const endDateInput = document.getElementById("endDate").value;
+            if (startDateInput && endDateInput) {
+              window.location.href = `/?startDate=${startDateInput}&endDate=${endDateInput}`;
+            }
           });
-        } else {
-          dateCols.forEach(function (col) {
-            col.textContent = col.getAttribute("data-full");
-          });
-        }
       });
     </script>
   </body>

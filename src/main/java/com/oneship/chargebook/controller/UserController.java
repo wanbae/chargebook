@@ -27,29 +27,32 @@ public class UserController {
         KiaToken kiaToken = kiaService.getKiaTokenByUserId(user.getId());
 
         model.addAttribute("user", user);
-        if (kiaToken != null) {
-            model.addAttribute("refreshTokenExpirationTime", kiaToken.getRefreshTokenExpirationTime());
-        } else {
-            model.addAttribute("refreshTokenExpirationTime", null);
-        }
+        model.addAttribute("refreshTokenExpirationTime", 
+                            kiaToken != null ? kiaToken.getRefreshTokenExpirationTime() : null);
 
         return "profile";
     }
 
-    // @GetMapping("/register")
-    // public String register(Model model) {
-    //     model.addAttribute("user", new User());
-    //     return "register";
-    // }
-
-    // @PostMapping("/register")
-    // public String registerUser(User user) {
-    //     userService.saveUser(user);
-    //     return "redirect:/login";
-    // }
-
     @GetMapping("/login")
     public String login() {
         return "login";
+    }
+
+    // 사용자 등록 기능 추가 (필요 시 활성화)
+    @GetMapping("/register")
+    public String register(Model model) {
+        model.addAttribute("user", new User());
+        return "register";
+    }
+
+    @PostMapping("/register")
+    public String registerUser(User user) {
+        userService.saveUser(user);
+        return "redirect:/login";
+    }
+
+    @GetMapping("/logout")
+    public String logout() {
+        return "logout";
     }
 }
