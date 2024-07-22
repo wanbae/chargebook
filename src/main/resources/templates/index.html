@@ -13,39 +13,118 @@
     <!-- Custom Styles -->
     <link href="/css/styles.css" rel="stylesheet" />
     <style>
+      body {
+        background-color: #f5f5f5;
+      }
+      .header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 20px 0;
+        border-bottom: 1px solid #ddd;
+        margin-bottom: 20px;
+      }
+      .header h1 {
+        margin: 0;
+      }
+      .header-right {
+        display: flex;
+        align-items: center;
+      }
       .period-selection {
         display: flex;
         justify-content: center;
         align-items: center;
-        gap: 5px;
+        gap: 10px;
         margin-bottom: 20px;
       }
-
       .period-selection input[type="date"] {
-        padding: 5px;
+        padding: 8px;
         border: 1px solid #ccc;
         border-radius: 4px;
-        width: 130px;
+        width: 150px;
       }
-
       .period-selection .btn {
-        padding: 5px 10px;
+        padding: 8px 20px;
       }
-
-      .table-container {
+      .summary-tables {
         display: flex;
-        justify-content: center;
-        overflow-x: auto;
+        justify-content: space-between;
+        margin-bottom: 20px;
       }
-
+      .summary-table {
+        width: 48%;
+        background-color: #fff;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+      .table-container {
+        overflow-x: auto;
+        background-color: #fff;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
       .charge-table {
         width: 100%;
-        max-width: 1200px;
-        margin: 0 auto;
+        margin-bottom: 0;
       }
-
-      .clickable-row {
-        cursor: pointer;
+      .clickable-row:hover {
+        background-color: #f1f1f1;
+      }
+      .button-container {
+        display: flex;
+        justify-content: flex-end;
+        margin-top: 20px;
+      }
+      th,
+      td,
+      [data-label] {
+        text-align: center;
+      }
+      td.numeric {
+        text-align: right;
+      }
+      @media (max-width: 1500px) {
+        .battery-status-column {
+          display: none;
+        }
+      }
+      @media (max-width: 1400px) {
+        .driving-range-column {
+          display: none;
+        }
+      }
+      @media (max-width: 1300px) {
+        .final-unit-price-column {
+          display: none;
+        }
+      }
+      @media (max-width: 1200px) {
+        .unit-price-column {
+          display: none;
+        }
+      }
+      @media (max-width: 1100px) {
+        .point-column {
+          display: none;
+        }
+      }
+      @media (max-width: 1000px) {
+        .discounted-price-column {
+          display: none;
+        }
+      }
+      @media (max-width: 900px) {
+        .final-price-column {
+          display: none;
+        }
+      }
+      @media (max-width: 800px) {
+        .distance-column {
+          display: none;
+        }
       }
     </style>
   </head>
@@ -79,18 +158,17 @@
           th:value="${startDate}"
         />
         <input type="date" id="endDate" name="endDate" th:value="${endDate}" />
-        <button class="btn" id="searchButton">조회</button>
+        <button class="btn blue lighten-2" id="searchButton">조회</button>
       </div>
 
       <!-- 기존 테이블 및 기타 콘텐츠 -->
       <div class="summary-tables">
         <div class="summary-table">
-          <h5>카드별 청구금액 총합</h5>
           <table class="striped">
             <thead>
               <tr>
                 <th>카드</th>
-                <th>총 청구금액</th>
+                <th>금액</th>
               </tr>
             </thead>
             <tbody>
@@ -98,18 +176,17 @@
                 <td
                   th:text="${cardSummary.key == 'BC' ? '비씨카드' : cardSummary.key == 'Samsung' ? '삼성카드' : cardSummary.key == 'Shinhan' ? '신한카드' : cardSummary.key == 'Hana' ? '하나카드' : cardSummary.key}"
                 ></td>
-                <td th:text="${cardSummary.value}"></td>
+                <td class="currency" th:text="${cardSummary.value}"></td>
               </tr>
             </tbody>
           </table>
         </div>
         <div class="summary-table">
-          <h5>사업자별 충전량 총합</h5>
           <table class="striped">
             <thead>
               <tr>
                 <th>사업자</th>
-                <th>총 충전량</th>
+                <th>충전량</th>
               </tr>
             </thead>
             <tbody>
@@ -131,14 +208,14 @@
               <th>날짜</th>
               <th>충전량</th>
               <th>충전금액</th>
-              <th>단가</th>
-              <th>포인트 사용</th>
-              <th>할인후 금액</th>
-              <th>청구금액</th>
-              <th>청구단가</th>
-              <th>배터리 잔량</th>
-              <th>주행 가능 거리</th>
-              <th>누적주행거리</th>
+              <th class="unit-price-column">단가</th>
+              <th class="point-column">포인트 사용</th>
+              <th class="discounted-price-column">할인후 금액</th>
+              <th class="final-price-column">청구금액</th>
+              <th class="final-unit-price-column">청구단가</th>
+              <th class="battery-status-column">배터리 잔량</th>
+              <th class="driving-range-column">주행 가능 거리</th>
+              <th class="distance-column">누적주행거리</th>
               <th>카드</th>
               <th>사업자</th>
             </tr>
@@ -152,34 +229,84 @@
               <td
                 th:text="${#dates.format(data.date, 'MM.dd')}"
                 data-label="날짜"
+                title="날짜"
               ></td>
-              <td th:text="${data.amountOfCharge}" data-label="충전량"></td>
-              <td th:text="${data.price}" data-label="충전금액"></td>
-              <td th:text="${data.unitPrice}" data-label="단가"></td>
-              <td th:text="${data.point}" data-label="포인트 사용"></td>
               <td
+                th:text="${data.amountOfCharge}"
+                data-label="충전량"
+                title="충전량"
+                class="numeric"
+              ></td>
+              <td
+                class="currency numeric"
+                th:text="${data.price}"
+                data-label="충전금액"
+                title="충전금액"
+              ></td>
+              <td
+                class="unit-price-column currency numeric"
+                th:text="${data.unitPrice}"
+                data-label="단가"
+                title="단가"
+              ></td>
+              <td
+                class="point-column currency numeric"
+                th:text="${data.point}"
+                data-label="포인트 사용"
+                title="포인트 사용"
+              ></td>
+              <td
+                class="discounted-price-column currency numeric"
                 th:text="${data.discountedPrice}"
                 data-label="할인후 금액"
+                title="할인후 금액"
               ></td>
-              <td th:text="${data.finalPrice}" data-label="청구금액"></td>
-              <td th:text="${data.finalUnitPrice}" data-label="청구단가"></td>
-              <td th:text="${data.batteryStatus}" data-label="배터리 잔량"></td>
               <td
+                class="final-price-column currency numeric"
+                th:text="${data.finalPrice}"
+                data-label="청구금액"
+                title="청구금액"
+              ></td>
+              <td
+                class="final-unit-price-column currency numeric"
+                th:text="${data.finalUnitPrice}"
+                data-label="청구단가"
+                title="청구단가"
+              ></td>
+              <td
+                class="battery-status-column"
+                th:text="${data.batteryStatus}"
+                data-label="배터리 잔량"
+                title="배터리 잔량"
+              ></td>
+              <td
+                class="driving-range-column distance"
                 th:text="${data.drivingRange}"
                 data-label="주행 가능 거리"
+                title="주행 가능 거리"
               ></td>
-              <td th:text="${data.distance}" data-label="누적주행거리"></td>
+              <td
+                class="distance-column distance numeric"
+                th:text="${data.distance}"
+                data-label="누적주행거리"
+                title="누적주행거리"
+              ></td>
               <td
                 th:text="${data.card == 'BC' ? '비씨카드' : data.card == 'Samsung' ? '삼성카드' : data.card == 'Shinhan' ? '신한카드' : data.card == 'Hana' ? '하나카드' : data.card}"
                 data-label="카드"
+                title="카드"
               ></td>
-              <td th:text="${data.company}" data-label="사업자"></td>
+              <td
+                th:text="${data.company}"
+                data-label="사업자"
+                title="사업자"
+              ></td>
             </tr>
           </tbody>
         </table>
       </div>
       <div class="button-container">
-        <a class="btn right" href="/input">입력</a>
+        <a class="btn blue lighten-2" href="/input">입력</a>
       </div>
     </div>
 
@@ -203,6 +330,25 @@
               window.location.href = `/?startDate=${startDateInput}&endDate=${endDateInput}`;
             }
           });
+
+        // 숫자를 화폐 단위로 포맷팅하는 함수
+        function formatCurrency(value) {
+          return "₩" + value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+        }
+
+        // 숫자를 거리 단위로 포맷팅하는 함수
+        function formatDistance(value) {
+          return value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") + " km";
+        }
+
+        // 각 셀에 포맷팅 적용
+        document.querySelectorAll(".currency").forEach((cell) => {
+          cell.textContent = formatCurrency(cell.textContent);
+        });
+
+        document.querySelectorAll(".distance").forEach((cell) => {
+          cell.textContent = formatDistance(cell.textContent);
+        });
       });
     </script>
   </body>
