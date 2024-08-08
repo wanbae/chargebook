@@ -191,7 +191,9 @@
             </thead>
             <tbody>
               <tr th:each="companySummary : ${totalChargeByCompany.entrySet()}">
-                <td th:text="${companySummary.key}"></td>
+                <td
+                  th:text="${companySummary.key == 'chargev' ? '차지비' : companySummary.key}"
+                ></td>
                 <td th:text="${companySummary.value}"></td>
               </tr>
             </tbody>
@@ -297,7 +299,7 @@
                 title="카드"
               ></td>
               <td
-                th:text="${data.company}"
+                th:text="${data.company == 'chargev' ? '차지비' : data.company == 'evon' ? '이브온' : data.company == 'green' ? '그린' : data.company == 'gs' ? 'GS칼텍스' : data.company}"
                 data-label="사업자"
                 title="사업자"
               ></td>
