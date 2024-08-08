@@ -1,7 +1,5 @@
 package com.oneship.chargebook;
 
-import java.text.SimpleDateFormat;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
@@ -20,10 +18,10 @@ public class DataLoader implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
-        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+        // SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
 
-        // 사용자 정보를 가져옵니다. 예를 들어, 이메일로 사용자를 찾습니다.
-        // User user = userRepository.findByUsername("1");
+        // // // 사용자 정보를 가져옵니다. 예를 들어, 이메일로 사용자를 찾습니다.
+        // User user = userRepository.findByUsername("nestor");
 
         // List<ChargeData> chargeDataList = Arrays.asList(
         //     new ChargeData(dateFormat.parse("2024-05-01"), 5.03, 1740, 726, 1014, 70, 305, 61, 6150, "삼성", "EV Infra", user),

@@ -38,18 +38,18 @@ public class UserController {
         return "login";
     }
 
-    // 사용자 등록 기능 추가 (필요 시 활성화)
-    @GetMapping("/register")
-    public String register(Model model) {
-        model.addAttribute("user", new User());
-        return "register";
-    }
+    // // 사용자 등록 기능 추가 (필요 시 활성화)
+    // @GetMapping("/register")
+    // public String register(Model model) {
+    //     model.addAttribute("user", new User());
+    //     return "register";
+    // }
 
-    @PostMapping("/register")
-    public String registerUser(User user) {
-        userService.saveUser(user);
-        return "redirect:/login";
-    }
+    // @PostMapping("/register")
+    // public String registerUser(User user) {
+    //     userService.saveUser(user);
+    //     return "redirect:/login";
+    // }
 
     @GetMapping("/logout")
     public String logout() {

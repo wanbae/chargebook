@@ -8,6 +8,7 @@ services:
       - "8080:8080"
     volumes:
       - ./config/application-secret.yml:/app/config/application-secret.yml
+      - ./config/application.yml:/app/config/application.yml
       - ./data:/app/data
     environment:
       SPRING_PROFILES_ACTIVE: secret

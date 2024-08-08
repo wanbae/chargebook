@@ -4,6 +4,9 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
+
+import org.springframework.format.annotation.DateTimeFormat;
+
 import java.util.Date;
 
 @Entity
@@ -14,6 +17,7 @@ public class ChargeData {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
+    @DateTimeFormat(pattern = "yyyy-MM-dd")
     private Date date;
 
     @Column(nullable = false)

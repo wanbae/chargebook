@@ -83,7 +83,7 @@ public class ChargeDataService {
         try {
             return kiaService.getOdometer(user.getId());
         } catch (Exception e) {
-            logger.error("Error getting accumulated distance", e);
+            logger.debug("Error getting accumulated distance", e);
             return 0;
         }
     }
@@ -92,7 +92,7 @@ public class ChargeDataService {
         try {
             return kiaService.getBatteryStatus(user.getId());
         } catch (Exception e) {
-            logger.error("Error getting battery status", e);
+            logger.debug("Error getting battery status", e);
             return 0.0;
         }
     }
@@ -101,7 +101,7 @@ public class ChargeDataService {
         try {
             return kiaService.getDte(user.getId());
         } catch (Exception e) {
-            logger.error("Error getting driving range", e);
+            logger.debug("Error getting driving range", e);
             return 0.0;
         }
     }
