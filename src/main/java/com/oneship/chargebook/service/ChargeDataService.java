@@ -107,13 +107,21 @@ public class ChargeDataService {
     }
 
     public Map<String, Integer> getTotalPriceByCard(Date startDate, Date endDate, User user) {
+        // startDate와 endDate 사이의 주어진 사용자의 충전 데이터를 가져옴
         List<ChargeData> dataList = getChargeDataByDateRangeAndUser(startDate, endDate, user);
+        
+        // 카드별 총 가격을 저장할 Map 초기화
         Map<String, Integer> totalPriceByCard = new HashMap<>();
+        
+        // 각 충전 데이터를 순회하면서 카드별로 가격을 합산 (포인트 사용 금액 제외)
         for (ChargeData data : dataList) {
-            totalPriceByCard.merge(data.getCard(), data.getPrice(), Integer::sum);
+            int netPrice = data.getPrice() - data.getPoint(); // 포인트 사용 금액을 제외한 금액
+            totalPriceByCard.merge(data.getCard(), netPrice, Integer::sum);
         }
-        return totalPriceByCard;
+        
+        return totalPriceByCard; // 카드별 총 가격 반환
     }
+    
 
     public Map<String, Integer> getTotalChargeByCompany(Date startDate, Date endDate, User user) {
         List<ChargeData> dataList = getChargeDataByDateRangeAndUser(startDate, endDate, user);
