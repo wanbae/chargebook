@@ -38,19 +38,31 @@ public class MainController {
 
     @GetMapping("/")
     public String index(Model model, @RequestParam(value = "startDate", required = false) Date startDate, @RequestParam(value = "endDate", required = false) Date endDate, Principal principal) {
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         if (startDate == null || endDate == null) {
             Calendar cal = Calendar.getInstance();
+            // 현재 월의 1일 0시 0분 0초로 설정
             cal.set(Calendar.DAY_OF_MONTH, 1);
+            cal.set(Calendar.HOUR_OF_DAY, 0);
+            cal.set(Calendar.MINUTE, 0);
+            cal.set(Calendar.SECOND, 0);
+            cal.set(Calendar.MILLISECOND, 0);
             startDate = cal.getTime();
+            
+            // 현재 월의 마지막 날, 23시 59분 59초로 설정
             cal.set(Calendar.DAY_OF_MONTH, cal.getActualMaximum(Calendar.DAY_OF_MONTH));
+            cal.set(Calendar.HOUR_OF_DAY, 23);
+            cal.set(Calendar.MINUTE, 59);
+            cal.set(Calendar.SECOND, 59);
+            cal.set(Calendar.MILLISECOND, 999);
             endDate = cal.getTime();
         }
 
         User user = userDetailsService.getUserByPrincipal(principal);
         List<ChargeData> chargeDataList = chargeDataService.getChargeDataByDateRangeAndUser(startDate, endDate, user);
         
+        sdf = new SimpleDateFormat("yyyy-MM-dd");
+
         model.addAttribute("chargeDataList", chargeDataList);
         model.addAttribute("startDate", sdf.format(startDate));
         model.addAttribute("endDate", sdf.format(endDate));
